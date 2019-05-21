@@ -10,6 +10,8 @@ SEX = ['unknown', 'male', 'female']
 EDUBG = ['undergraduate', 'masterofscience', 'doctor']
 DEFAULT_TIME = '2000-01-01 00:00:00'
 
+__all__ = ["db_helper"]
+
 
 class Student(db.Model):
     '''
@@ -228,7 +230,9 @@ class DBHelper:
 
     def __init__(self, db):
         self.db = db
-        self.session = self.db.session
+        self.session = db.session
+        self.db.drop_all()
+        self.db.create_all()
 
     def commit(self):
         '''更新提交'''
@@ -303,54 +307,4 @@ class DBHelper:
         return Task.query.filter(Task.tag.match(search_tag)).offset(start).limit(length).all()
 
 
-db.drop_all()
-db.create_all()
 db_helper = DBHelper(db)
-
-db_helper.save_all([
-    Student(email='email1@qq.com', openid='openid1', password='password1'),
-    Student(email='email2@qq.com', openid='openid2', password='password2'),
-    Student(email='email3@qq.com', openid='openid3', password='password3'),
-    Student(email='email4@qq.com', openid='openid4', password='password4'),
-])
-db_helper.save_all([
-    Organization(email='email1@qq.com',
-                 openid='openid1_o', password='password1'),
-    Organization(email='email2@qq.com',
-                 openid='openid2_o', password='password2'),
-])
-db_helper.save_all([
-    Task(publish_id='openid1_o', title='title1',
-         content='word1 word2 word3 word4 word5', tag='tag1 tag2'),
-    Task(publish_id='openid1_o', title='title2',
-         content='word1 word2 word6 word7 word8', tag='tag2 tag3 tag4'),
-    Task(publish_id='openid1', title='title2',
-         content='word1 word2 word6 word7 word8', tag='tag2 tag3 tag4'),
-    Task(publish_id='openid2_o', title='title2',
-         content='word1 word2 word6 word7 word8', tag='tag2 tag3 tag4'),
-    Task(publish_id='openid2', title='title2',
-         content='word1 word2 word6 word7 word8', tag='tag2 tag3 tag4'),
-])
-db_helper.save_all([
-    Accept(accept_id='openid1', task_id=1),
-    Accept(accept_id='openid3', task_id=1),
-    Accept(accept_id='openid4', task_id=1),
-    Accept(accept_id='openid2', task_id=2),
-    Accept(accept_id='openid3', task_id=2),
-    Accept(accept_id='openid4', task_id=2),
-    Accept(accept_id='openid1', task_id=2),
-])
-db_helper.commit()
-
-print(db.session.query(Accept).count(), db.session.query(Task).count())
-stu = db_helper.query_student('openid1')
-org = db_helper.query_oraganization('openid1_o')
-print(db_helper.get_publish_tasks(org.openid))
-print(db_helper.get_accept_tasks(stu.openid))
-db_helper.delete(stu)
-print(db.session.query(Accept).count(), db.session.query(Task).count())
-
-print(db_helper.search_task_by_text('word1'))
-print(db_helper.search_task_by_text('word5'))
-print(db_helper.search_task_by_tag('tag2'))
-print(db_helper.search_task_by_tag('tag4'))
