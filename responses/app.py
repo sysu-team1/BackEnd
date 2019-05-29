@@ -1,11 +1,15 @@
 from flask import Flask, request, json
-from login_or_register import login_, register_, get_verification_code_, enter_event_and_run_scheduler
+from manage_users import login_, register_, get_verification_code_, enter_event_and_run_scheduler
+from get_tasks import get_tasks_by_
+
 
 app = Flask(__name__)
 
+
 @app.route('/user/login/', methods=['GET', 'POST'])
 def login():
-	return login_()
+	return login_(request.form['email'], request.form['password'])
+
 
 @app.route('/user/register/', methods=['POST'])
 def register():
@@ -22,10 +26,16 @@ def register():
 					request.form['student_id'], request.form['grade'],
 					request.form['major'], request.form['sex'])
 
-@app.route('/user/get_verification_code', methods=['POST'])
+
+@app.route('/user/get_verification_code/', methods=['POST'])
 def get_verification_code():
 	# 生成验证码并发送至邮箱
 	return get_verification_code_(request.form['email'])
+
+
+@app.route('/tasks/search_by/', methods=['GET'])
+def get_tasks_by():
+	return get_tasks_by_(request.args)
 
 
 if __name__ == "__main__":
