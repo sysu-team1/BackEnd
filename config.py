@@ -34,3 +34,4 @@ ANSWER_JSON_PATTERN = make_pattern(len(ANSWER_JSON_ATTR_ORDER))
 
 SPLIT_STU_ORG = 1000000
 SPLIT_ANSWER = '#'
+DROP_ALL = False  # 表示每次重启/启动时是否删除原有表

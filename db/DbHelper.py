@@ -231,7 +231,7 @@ class DBHelper:
         return tasks
 
 
-db_helper = DBHelper(db, drop_all=False)
+db_helper = DBHelper(db, drop_all=True)
 
 
 # @classmethod
