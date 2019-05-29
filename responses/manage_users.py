@@ -1,15 +1,19 @@
-from threading import Timer, Thread
+from threading import Timer, Thread, Lock
 import time
 import collections
 import sched
 
 codes = collections.OrderedDict()
 s = sched.scheduler(time.time, time.sleep) # 用来定时删除过期验证码的调度器
-is_scheduler_running = False
+scheduler_lock = Lock()
+is_scheduler_running = False # 判定调度器是否正在运行
+
 time_limit = 60 * 0.2
 
 
-def login_():
+def login_(email, password):
+	# 邮箱未注册
+	# 密码错误
 	return "login_"
 
 
@@ -17,13 +21,17 @@ def register_(email, password, validate_code, name, student_id, grade, major, se
 	res = {}
 	if(email not in codes):
 		res = {'error': 1, 'data': {'msg': '未获取验证码或验证码过期'}}
-	elif(code[email][0] != validate_code):
+	elif(codes[email][0] != validate_code):
 		res = {'error': 1, 'data': {'msg': '验证码错误'}}
 	else:
 		# To Do数据库操作
 		if(True):
+			try:
+				codes.pop(email)
+			except Exception as e:
+				print('Error:', e)
 			res = {'error': 0, 'data': {'msg': '注册成功'}}
-		elif:
+		else:
 			res = {'error': 1, 'data': {'msg': '该邮箱已注册'}}
 	return str(res)
 
@@ -33,17 +41,19 @@ def get_verification_code_(email):
 	通过邮箱获取验证码，
 	验证码在一定时间内有效，超过这个期限则会自动删除
 	'''
+	global is_scheduler_running
 	res = {}
 	# 验证码还未过期的情况
 	if(email in codes):
 		res	= {'error': 1, 'data': {'msg': '原验证码未过期'}}
-		print(str(res));
+		print(str(res))
 	# 正常情况
 	else:
 		code = '11111' # 生成验证码并发送至邮箱
 		codes[email] = (code, time.time()) # 在本地记录验证码值
 		print('生成的验证码', codes[email])
-		if(not is_scheduler_running):
+		print(is_scheduler_running)
+		if(not is_scheduler_running): # 若调度器不在运行
 			enter_event_and_run_scheduler()
 		res	= {'error': 0, 'data': {'msg': '验证码已发送'}}
 	return str(res)
@@ -54,23 +64,32 @@ def delete_invalid_codes():
 	删除本地保存的过期（无效）的验证码。
 	OrderedDict按照插入的顺序排序，所以先创建验证码的一定在前面，从前面遍历删除直至遇到未过期的验证码为止
 	'''
+	global is_scheduler_running
 	for k in list(codes):
 		if(time.time() - codes[k][1] < time_limit):
 			break
-		print('删除的验证码：', codes.pop(k))
+		if(k in codes):
+			try:
+				print('删除的验证码：', codes.pop(k))
+			except Exception as e:
+				print('Error:', e)
 	if(len(codes) > 0 and s.empty()): # 若还有验证码，且调度队列为空，则继续将delete_invalid_codes加入调度器
 		s.enter(time_limit, 0, delete_invalid_codes)
 	else:
 		is_scheduler_running = False
-
+		if(len(codes) > 0 and not is_scheduler_running): # 应对线程安全，此时可能有验证码加入，但调度器并未开启
+			enter_event_and_run_scheduler()
 
 def enter_event_and_run_scheduler():
-	is_scheduler_running = True
-	if not s.empty():
-		return
-	s.enter(time_limit, 0, delete_invalid_codes)
-	t = Thread(target = s.run)
-	t.start()
+	scheduler_lock.acquire()
+	global is_scheduler_running
+	if(not is_scheduler_running):
+		is_scheduler_running = True
+		if(s.empty()):
+			s.enter(2, 0, delete_invalid_codes)
+			t = Thread(target = s.run)
+			t.start()
+	scheduler_lock.release()
 
 # def printf():
 # 	print(s.empty())
@@ -119,16 +138,3 @@ def enter_event_and_run_scheduler():
 	# # 生成的验证码 ('11111', 1559045177.9637892)
 	# # OrderedDict([('2', ('11111', 1559045177.9637892))])
 	
-
-# d = collections.OrderedDict()
-# d['qq.com'] = ('sdfsdf', time.time())
-# d['qq2.com'] = ('dfdf', time.time())
-# d['wqeqq.com'] = ('sdfsdf', time.time())
-
-# print(d)
-
-# for k, v in d.items():
-# 	print(k, v)
-
-# for k in d:
-# 	print(k)
