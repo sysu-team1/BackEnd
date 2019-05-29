@@ -1,8 +1,8 @@
 import copy
 import random
 
-from prepare import app, db, model_repr, DEFAULT_TIME, ALL_TAGS, QUESTIONNAIRE_INDEX
-from Problem import random_problems
+from .prepare import app, db, model_repr, DEFAULT_TIME, ALL_TAGS, QUESTIONNAIRE_INDEX
+from .Problem import random_problems
 
 
 class Task(db.Model):

@@ -1,7 +1,7 @@
 import copy
 import random
 
-from prepare import app, db, model_repr, SEX, EDUBG, ALL_TAGS
+from .prepare import app, db, model_repr, SEX, EDUBG, ALL_TAGS
 
 
 class Student(db.Model):

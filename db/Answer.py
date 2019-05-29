@@ -1,6 +1,6 @@
 import random
 
-from prepare import app, db, model_repr
+from .prepare import app, db, model_repr
 
 class Answer(db.Model):
     '''

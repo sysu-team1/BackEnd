@@ -32,6 +32,6 @@ PROBLEM_JSON_PATTERN = make_pattern(len(PROBLEM_JSON_ATTR_ORDER))
 ANSWER_JSON_ATTR_ORDER = ['accept_id', 'problem_id', 'answer']
 ANSWER_JSON_PATTERN = make_pattern(len(ANSWER_JSON_ATTR_ORDER))
 
-SPLIT_STU_ORG = 1000000
-SPLIT_ANSWER = '#'
+SPLIT_STU_ORG = 1000000  # student与orgnization间的openid切割
+SPLIT_ANSWER = '#'  # answer的切割符
 DROP_ALL = False  # 表示每次重启/启动时是否删除原有表

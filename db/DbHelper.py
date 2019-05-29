@@ -2,13 +2,13 @@ import datetime
 import random
 import time
 
-from prepare import app, db, ALL_TAGS, QUESTIONNAIRE_INDEX
-from Student import Student, random_stus
-from Organization import Organization, random_orgs
-from Task import Task, random_tasks
-from Accept import Accept, random_accepts
-from Problem import Problem, random_problems
-from Answer import Answer, random_answers
+from .prepare import app, db, ALL_TAGS, QUESTIONNAIRE_INDEX
+from .Student import Student, random_stus
+from .Organization import Organization, random_orgs
+from .Task import Task, random_tasks
+from .Accept import Accept, random_accepts
+from .Problem import Problem, random_problems
+from .Answer import Answer, random_answers
 
 
 class DBHelper:
@@ -143,7 +143,7 @@ class DBHelper:
         accepts = task.accepts[start : length]
         return [accept.student for accept in accepts]
 
-    def get_publisher_by_task_id(self, id_or_task):
+    def get_publisher(self, id_or_task):
         '''根据task_id或者task找到任务发布者'''
         if isinstance(id_or_task, int):
             task = self.session.query(
@@ -158,7 +158,7 @@ class DBHelper:
             task.publisher = Student.query.filter(Student.openid == task.publish_id).one()
         return task.publisher
 
-    def get_all_answers_by_task_id(self, id_or_task):
+    def get_all_answers(self, id_or_task):
         ''' 根据问卷id或者问卷获取所有的答案  
         Return:
             [problem1.answers, problem2.answers, ...]
@@ -190,7 +190,7 @@ class DBHelper:
         tasks = query.offset(start).limit(length).all()
         if get_publisher and tasks is not None and len(tasks) > 0:
             for task in tasks:
-                self.get_publisher_by_task(task)
+                self.get_publisher(task)
         return tasks
 
     def search_task_by_text(self, search_text, sort=True, get_publisher=True, start=0, length=10):
@@ -209,7 +209,7 @@ class DBHelper:
         tasks = query.offset(start).limit(length).all()
         if get_publisher and tasks is not None and len(tasks) > 0:
             for task in tasks:
-                self.get_publisher_by_task(task)
+                self.get_publisher(task)
         return tasks
 
     def search_task_by_tag(self, search_tag, sort=True, get_publisher=True, start=0, length=10):
@@ -227,11 +227,11 @@ class DBHelper:
         tasks = query.offset(start).limit(length).all()
         if get_publisher and tasks is not None and len(tasks) > 0:
             for task in tasks:
-                self.get_publisher_by_task(task)
+                self.get_publisher(task)
         return tasks
 
 
-db_helper = DBHelper(db, drop_all=True)
+db_helper = DBHelper(db, drop_all=app.config['DROP_ALL'])
 
 
 # @classmethod
@@ -287,7 +287,7 @@ def test_normal_crud():
     print('---------- 查找某些任务的发布者(可能重复)')
     sample_tasks = random.sample(tasks, 10)
     for task in sample_tasks:
-        print(task.id, task.publish_id, db_helper.get_publisher_by_task(task))
+        print(task.id, task.publish_id, db_helper.get_publisher(task))
     print('---------- 根据时间查询10个幸运任务')
     query_tasks_by_time = db_helper.search_task_by_time()
     for task in query_tasks_by_time:
