@@ -5,7 +5,7 @@ from tools import utils
 from db import db_helper, app, model_repr
 
 from flask import Flask, request, json
-from manage_users import login_, register_, get_verification_code_, enter_event_and_run_scheduler
+from manage_users import register_, get_verification_code_, enter_event_and_run_scheduler
 from get_tasks import get_tasks_by_
 
 
