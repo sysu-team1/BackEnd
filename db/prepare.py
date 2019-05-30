@@ -18,6 +18,13 @@ SPLIT_ANSWER = '#'
 
 
 def model_repr(obj, pattern: str, orders):
+    ''' 返回制定的样式
+
+    参数：
+        obj：从数据库中查询的结果
+        pattern：模式字符串
+        orders：需要的属性的顺序
+    '''
     temp = []
     for order in orders:
         temp.append('"{}"'.format(order))

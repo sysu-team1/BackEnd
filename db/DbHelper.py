@@ -360,3 +360,6 @@ if __name__ == "__main__":
     # test_none()
     task = Task.query.filter(Task.id == 3).one_or_none()
     print(task.accepts)
+
+# 测试使用
+# test_normal_crud()

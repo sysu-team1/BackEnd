@@ -11,18 +11,21 @@ import random
 import secret_key
 
 
-
-# username 表示控制台创建的发件人地址
-# password 表示发件人密码
-# replyto 表示回复地址
-# rcptto 表示收件人地址
-# input:rcptto 收件人
-# output:code 验证码
-''' example
-code = utils.send_email(rcptto='653128964@qq.com')
-print(code)
-'''
 def send_email(rcptto, username=secret_key.USERNAME, password=secret_key.PASSWORD, replyto=secret_key.REPLYTO):
+    '''发送邮件
+    参数：
+        username 表示控制台创建的发件人地址
+        password 表示发件人密码
+        replyto 表示回复地址
+        rcptto 表示收件人地址
+        input:rcptto 收件人
+        output:code 验证码
+    example：
+    code = utils.send_email(rcptto='653128964@qq.com')
+    print(code)
+
+    '''
+
     # 生成6位验证码
     code = generate_verification_code()
     # 构建alternative结构
@@ -68,7 +71,10 @@ for i in range(97, 123):
     code_element_list.append(chr(i))
 
 
-# input:None
-# output: code
 def generate_verification_code():
+    '''生成6位验证码
+    参数：
+        input:None
+        output: code
+    '''
     return ''.join(random.sample(code_element_list, 6))
