@@ -15,25 +15,31 @@ s = sched.scheduler(time.time, time.sleep) # 用来定时删除过期验证码�
 scheduler_lock = Lock()
 is_scheduler_running = False # 判定调度器是否正在运行
 
+# 测试场合
 time_limit = 60 * 0.2
+# 实际场合
+# time_limit = 60 * 5
 
 
-def register_(email, password, validate_code, name, student_id, grade, major, sex):
+def register_(email, password, sex, collage, grade, edu_bg, validate_code):
 	res = {}
 	if(email not in codes):
 		res = {'error': 1, 'data': {'msg': '未获取验证码或验证码过期'}}
 	elif(codes[email][0] != validate_code):
 		res = {'error': 1, 'data': {'msg': '验证码错误'}}
 	else:
-		# To Do数据库操作
-		if(True):
+		'''
+		判断邮箱是否被注册
+		'''
+		error_code, error_message, openid = db_helper.sign_up_true(email, password, sex, collage, grade, edu_bg)
+		if(error_code == 0):
 			try:
 				codes.pop(email)
 			except Exception as e:
 				print('Error:', e)
-			res = {'error': 0, 'data': {'msg': '注册成功'}}
+			res = {'error': str(error_code), 'data': {'msg': error_message, 'openid': str(openid)}}
 		else:
-			res = {'error': 1, 'data': {'msg': '该邮箱已注册'}}
+			res = {'error': str(error_code), 'data': {'msg': error_message, 'openid': str(openid)}}
 	return str(res)
 
 
@@ -56,7 +62,8 @@ def get_verification_code_(email):
 		发送邮件并生成验证码
 			code = utils.send_email(rcptto=email)
 		'''
-		code = '11111' # 生成验证码并发送至邮箱
+		# code = '11111' # 生成验证码并发送至邮箱
+		code = utils.generate_verification_code()
 		codes[email] = (code, time.time()) # 在本地记录验证码值
 		print('生成的验证码', codes[email])
 		print(is_scheduler_running)
@@ -74,7 +81,7 @@ def delete_invalid_codes():
 	global is_scheduler_running
 	for k in list(codes):
 		if(time.time() - codes[k][1] < time_limit):
-			break
+			break 
 		if(k in codes):
 			try:
 				print('删除的验证码：', codes.pop(k))

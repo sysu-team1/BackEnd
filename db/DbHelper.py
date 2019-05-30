@@ -104,6 +104,38 @@ class DBHelper:
         return 1, 'not exist', '', 
 
 
+    def sign_up_true(self, email, password, sex, collage, grade, edu_bg):
+        '''验证邮箱是否已被注册
+            如果未注册，则插入数据库并反馈信息
+            如果注册，则反馈失败信息
+
+
+            暂时没有使用的字段
+            tag: '与任务相关的标签'
+            signature: '用户签名'
+        input: email, password, sex, collage, grade, edu_bg
+            grade: '入学年级'
+            edu_bg: '学历'
+        output:error_code, error_message, openid
+            error_code为1表示出错
+            error_message: 
+                'already exist'
+                ''
+            openid
+        '''
+        stu = Student.query.filter(Student.email == email).one_or_none()
+        if stu != None:
+            return 1, 'already exist', None
+        else:
+            # 插入数据库
+            stus = []
+            stus.append(Student(email=email, password=password, sex=sex, collage=collage, grade=grade, edu_bg=edu_bg))
+            self.save_all(stus)
+            self.commit()
+            stu = Student.query.filter(Student.email == email).one_or_none()
+            return 0, "", stu.openid
+
+
     def query_student(self, openid, get_all=False):
         ''' 根据openid查找student，get_publish指定是否获取该student发布的任务与接受的任务 '''
         if get_all:
