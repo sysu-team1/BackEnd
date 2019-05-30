@@ -1,11 +1,11 @@
 '''test
 用于引用utils.py中的函数
 '''
-# import sys
-# import os
-# sys.path.append('./../')
-# from tools import utils
-
+import sys
+import os
+sys.path.append('./../')
+from tools import utils
+from db import db_helper, app, model_repr
 from threading import Timer, Thread, Lock
 import time
 import collections
@@ -16,12 +16,6 @@ scheduler_lock = Lock()
 is_scheduler_running = False # 判定调度器是否正在运行
 
 time_limit = 60 * 0.2
-
-
-def login_(email, password):
-	# 邮箱未注册
-	# 密码错误
-	return "login_"
 
 
 def register_(email, password, validate_code, name, student_id, grade, major, sex):

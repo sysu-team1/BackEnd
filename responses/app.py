@@ -1,3 +1,9 @@
+import sys
+import os
+sys.path.append('./../')
+from tools import utils
+from db import db_helper, app, model_repr
+
 from flask import Flask, request, json
 from manage_users import login_, register_, get_verification_code_, enter_event_and_run_scheduler
 from get_tasks import get_tasks_by_
@@ -8,7 +14,12 @@ app = Flask(__name__)
 
 @app.route('/user/login/', methods=['GET', 'POST'])
 def login():
-	return login_(request.form['email'], request.form['password'])
+	'''
+	详情请见db_helper.sign_in_true
+	'''
+	error_code, error_message, openid = db_helper.sign_in_true(request.form['type'], request.form['email'], request.form['password'])
+	res = '{"error": ' + str(error_code) + ',' + '"error_message":'+ error_message + ',' + '"data": {"openid":' + str(openid) + '}}'
+	return res
 
 
 @app.route('/user/register/', methods=['POST'])
