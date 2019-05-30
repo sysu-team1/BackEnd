@@ -1,14 +1,12 @@
 # -*- coding:utf-8 -*-
-import smtplib
-import email
+import smtplib, email
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from email.mime.base import MIMEBase
 from email.mime.application import MIMEApplication
 from email.header import Header
-import random
-import secret_key
+import secret_key, constants, random
 
 
 def send_email(rcptto, username=secret_key.USERNAME, password=secret_key.PASSWORD, replyto=secret_key.REPLYTO):
@@ -23,7 +21,6 @@ def send_email(rcptto, username=secret_key.USERNAME, password=secret_key.PASSWOR
     example：
     code = utils.send_email(rcptto='653128964@qq.com')
     print(code)
-
     '''
 
     # 生成6位验证码
@@ -56,25 +53,10 @@ def send_email(rcptto, username=secret_key.USERNAME, password=secret_key.PASSWOR
     return code
 
 
-
-# 利用random生成6为验证码
-# code_element_list 存储随机验证码的生成元素
-code_element_list = []
-# 添加0-9数字
-for i in range(10):
-    code_element_list.append(str(i))
-# 添加A-Z数字
-for i in range(65, 91):
-    code_element_list.append(chr(i))
-# 添加a-z数字
-for i in range(97, 123):
-    code_element_list.append(chr(i))
-
-
 def generate_verification_code():
     '''生成6位验证码
     参数：
         input:None
         output: code
     '''
-    return ''.join(random.sample(code_element_list, 6))
+    return ''.join(random.sample(constants.code_element_list, 6))

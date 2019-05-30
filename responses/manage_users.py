@@ -1,8 +1,15 @@
+'''test
+用于引用utils.py中的函数
+'''
+# import sys
+# import os
+# sys.path.append('./../')
+# from tools import utils
+
 from threading import Timer, Thread, Lock
 import time
 import collections
 import sched
-
 codes = collections.OrderedDict()
 s = sched.scheduler(time.time, time.sleep) # 用来定时删除过期验证码的调度器
 scheduler_lock = Lock()
@@ -49,6 +56,12 @@ def get_verification_code_(email):
 		print(str(res))
 	# 正常情况
 	else:
+		''' 
+		测试生成验证码（不发送邮件）
+			code = utils.generate_verification_code()
+		发送邮件并生成验证码
+			code = utils.send_email(rcptto=email)
+		'''
 		code = '11111' # 生成验证码并发送至邮箱
 		codes[email] = (code, time.time()) # 在本地记录验证码值
 		print('生成的验证码', codes[email])
@@ -80,6 +93,7 @@ def delete_invalid_codes():
 		if(len(codes) > 0 and not is_scheduler_running): # 应对线程安全，此时可能有验证码加入，但调度器并未开启
 			enter_event_and_run_scheduler()
 
+
 def enter_event_and_run_scheduler():
 	scheduler_lock.acquire()
 	global is_scheduler_running
@@ -97,44 +111,44 @@ def enter_event_and_run_scheduler():
 # 	print(s.empty())
 
 
-# # test
-# if __name__ == '__main__':
-# 	enter_event_and_run_scheduler()
-	# s.enter(time_limit, 0, printf)
-	# print(s.empty())
-	# s.run()
-	# print(s.empty())
+# test
+'''
+if __name__ == '__main__':
+	enter_event_and_run_scheduler()
+	s.enter(time_limit, 0, printf)
+	print(s.empty())
+	s.run()
+	print(s.empty())
 
-	'''
-	测试获取、保存、删除验证码
-	time_limit = 60 * 0.1
-	'''
-	# get_verification_code_('11.qq.com')
-	# get_verification_code_('11.qq.com') # 测试原验证码未过期
 
-	# # 删除时没有过期的验证码的情况
-	# delete_invalid_codes() 
-	# print('ok1')
-	# time.sleep(5)
-	# delete_invalid_codes()
-	# print('ok2')
+	# 测试获取、保存、删除验证码
+	# time_limit = 60 * 0.1
+	get_verification_code_('11.qq.com')
+	get_verification_code_('11.qq.com') # 测试原验证码未过期
 
-	# # 删除过期验证码的情况
-	# time.sleep(2)
-	# delete_invalid_codes()
-	# print('ok3')
+	# 删除时没有过期的验证码的情况
+	delete_invalid_codes() 
+	print('ok1')
+	time.sleep(5)
+	delete_invalid_codes()
+	print('ok2')
 
-	# # 获取新的 
-	# get_verification_code_('2')
-	# print(codes)
+	# 删除过期验证码的情况
+	time.sleep(2)
+	delete_invalid_codes()
+	print('ok3')
 
-	# # 输出结果：
-	# # 生成的验证码 ('11111', 1559045170.948554)
-	# # {'error': 1, 'data': {'msg': '原验证码未过期'}}
-	# # ok1
-	# # ok2
-	# # 删除的验证码： ('11111', 1559045170.948554)
-	# # ok3
-	# # 生成的验证码 ('11111', 1559045177.9637892)
-	# # OrderedDict([('2', ('11111', 1559045177.9637892))])
-	
+	# 获取新的 
+	get_verification_code_('2')
+	print(codes)
+
+	# 输出结果：
+	# 生成的验证码 ('11111', 1559045170.948554)
+	# {'error': 1, 'data': {'msg': '原验证码未过期'}}
+	# ok1
+	# ok2
+	# 删除的验证码： ('11111', 1559045170.948554)
+	# ok3
+	# 生成的验证码 ('11111', 1559045177.9637892)
+	# OrderedDict([('2', ('11111', 1559045177.9637892))])
+'''
