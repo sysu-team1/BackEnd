@@ -160,7 +160,7 @@ class DBHelper:
         '''根据accept_id与task.id查询是否已经接受该任务了'''
         return Accept.query.filter(Accept.accept_id == accept_id, Accept.task_id == task_id).one_or_none() is not None
 
-    def get_publish_tasks(self, openid, start=0, length=update_add_num, sort=True):
+    def get_publish_tasks(self, openid, sort=True, last_id=-1, start=0, length=update_add_num):
         '''根据openid查找发布的任务  
         Args:
             openid:
@@ -169,11 +169,13 @@ class DBHelper:
             sort: 表示是否安装publish_time排序
         '''
         query = Task.query.filter(Task.publish_id == openid)
+        if last_id != -1:
+            query = query.filter(Task.id < last_id)
         if sort:
-            query = query.order_by(Task.publish_time.desc())
+            query = query.order_by(Task.id.desc())
         return query.offset(start).limit(length).all()
 
-    def get_accept_tasks(self, openid, start=0, length=update_add_num, sort=True):
+    def get_accept_tasks(self, openid, sort=True, last_id=-1, start=0, length=update_add_num):
         '''根据openid查找接受的任务  
         Args:
             openid:
@@ -183,6 +185,8 @@ class DBHelper:
         '''
         query = self.session.query(Task).join(Accept).filter(
             Accept.accept_id == openid).filter(Accept.task_id == Task.id)
+        if last_id != -1:
+            query = query.filter(Task.id < last_id)
         if sort:
             query = query.order_by(Accept.accept_time.desc())
         return query.offset(start).limit(length).all()
@@ -238,54 +242,59 @@ class DBHelper:
             all_answers.append(problem.answers)
         return all_answers
 
-    def search_task_by_time(self, sort=True, get_publisher=True, start=0, length=update_add_num):
+    def get_task(self, sort=True, last_id=-1, get_publisher=True, start=0, length=update_add_num):
         '''搜索Task  
         参数:
             sort: 表示是否按照时间排序
             get_publisher: 表示是否获取任务发布者
+            last_id: 表示上次刷新时最后返回的任务的id
             start: 表示获取任务的开始位置
             length: 表示获取任务的数量
         '''
         query = Task.query
-        if sort:
-            query = query.order_by(Task.publish_time.desc())
-        tasks = query.offset(start).limit(length).all()
-        if get_publisher and tasks is not None and len(tasks) > 0:
-            for task in tasks:
-                self.get_publisher(task)
-        return tasks
+        return self._get_task(query, sort, last_id, get_publisher, start, length)
 
-    def search_task_by_text(self, search_text, sort=True, get_publisher=True, start=0, length=update_add_num):
+    def get_task_by_text(self, search_text, sort=True, last_id=-1, get_publisher=True, start=0, length=update_add_num):
         '''根据内容和标题搜索Task  
         参数:
             search_text: 表示用于搜索的文本
             sort: 表示是否按照时间排序
+            last_id: 表示上次刷新时最后返回的任务的id
             get_publisher: 表示是否获取任务发布者
             start: 表示获取任务的开始位置
             length: 表示获取任务的数量
         '''
         query = Task.query.filter(self.db.text(
             "match (title, content) against (:text)")).params(text=search_text)
-        if sort:
-            query = query.order_by(Task.publish_time.desc())
-        tasks = query.offset(start).limit(length).all()
-        if get_publisher and tasks is not None and len(tasks) > 0:
-            for task in tasks:
-                self.get_publisher(task)
-        return tasks
+        return self._get_task(query, sort, last_id, get_publisher, start, length)
 
-    def search_task_by_tag(self, search_tag, sort=True, get_publisher=True, start=0, length=update_add_num):
+    def get_task_by_tag(self, search_tag, sort=True, last_id=-1, get_publisher=True, start=0, length=update_add_num):
         '''根据tag搜索Task  
         参数:
             search_tag: 表示用于搜索的tag
             sort: 表示是否按照时间排序
+            last_id: 表示上次刷新时最后返回的任务的id
             get_publisher: 表示是否获取任务发布者
             start: 表示获取任务的开始位置
             length: 表示获取任务的数量
         '''
         query = Task.query.filter(Task.tag.match(search_tag))
+        return self._get_task(query, sort, last_id, get_publisher, start, length)
+
+    def _get_task(self, query, sort=True, last_id=-1, get_publisher=True, start=0, length=update_add_num):
+        '''搜索Task  
+        参数:
+            query: 用于查询任务
+            sort: 表示是否按照时间排序
+            get_publisher: 表示是否获取任务发布者
+            last_id: 表示上次刷新时最后返回的任务的id
+            start: 表示获取任务的开始位置
+            length: 表示获取任务的数量
+        '''
+        if last_id != -1:
+            query = query.filter(Task.id < last_id)
         if sort:
-            query = query.order_by(Task.publish_time.desc())
+            query = query.order_by(Task.id.desc())
         tasks = query.offset(start).limit(length).all()
         if get_publisher and tasks is not None and len(tasks) > 0:
             for task in tasks:
@@ -416,12 +425,91 @@ def test_normal_crud():
     print(stu._tasks[0], org._tasks[0], task._publisher, sep='\n') """
 
 
+def test_time():
+    print('---------- 根据时间加载最新10条')
+    orders = ['id', 'publish_time']
+    patterns = make_pattern(len(orders))
+    tasks = db_helper.get_task()
+    for task in tasks:
+        print(model_repr(task, patterns, orders))
+    num_tasks = len(tasks)
+    if num_tasks == update_add_num:
+        last_id = tasks[-1].id
+        print('---------- 根据时间加载后10条')
+        tasks = db_helper.get_task(last_id=last_id)
+        for task in tasks:
+            print(model_repr(task, patterns, orders))
+    elif num_tasks > update_add_num:
+        print('什么鬼！！！ something wrong happen')
+        return
+    else:
+        print('not enough tasks')
+
+    print('---------- 根据tag加载最新10条')
+    orders = ['id', 'publish_time', 'tag']
+    patterns = make_pattern(len(orders))
+    tasks = db_helper.get_task_by_tag(ALL_TAGS[QUESTIONNAIRE_INDEX])
+    for task in tasks:
+        print(model_repr(task, patterns, orders))
+    num_tasks = len(tasks)
+    if num_tasks == update_add_num:
+        last_id = tasks[-1].id
+        print('---------- 根据tag加载后10条')
+        tasks = db_helper.get_task_by_tag(ALL_TAGS[QUESTIONNAIRE_INDEX], last_id=last_id)
+        for task in tasks:
+            print(model_repr(task, patterns, orders))
+    elif num_tasks > update_add_num:
+        print('什么鬼！！！ something wrong happen')
+        return
+    else:
+        print('not enough tasks')
+
+    print('---------- 根据text加载最新10条')
+    orders = ['id', 'publish_time', 'title', 'content']
+    patterns = make_pattern(len(orders))
+    tasks = db_helper.get_task_by_text('word2')
+    for task in tasks:
+        print(model_repr(task, patterns, orders))
+    num_tasks = len(tasks)
+    if num_tasks == update_add_num:
+        last_id = tasks[-1].id
+        print('---------- 根据text加载后10条')
+        tasks = db_helper.get_task_by_text('word2', last_id=last_id)
+        for task in tasks:
+            print(model_repr(task, patterns, orders))
+    elif num_tasks > update_add_num:
+        print('什么鬼！！！ something wrong happen')
+        return
+    else:
+        print('not enough tasks')
+
+    print('---------- 加载组织6发布的最新4条任务')
+    orders = ['id', 'publish_time']
+    patterns = make_pattern(len(orders))
+    tasks = db_helper.get_publish_tasks(openid=6, length=4)
+    for task in tasks:
+        print(model_repr(task, patterns, orders))
+    num_tasks = len(tasks)
+    if num_tasks == 4:
+        last_id = tasks[-1].id
+        print('---------- 加载组织6发布的后4条任务')
+        tasks = db_helper.get_publish_tasks(openid=6, last_id=last_id, length=4)
+        for task in tasks:
+            print(model_repr(task, patterns, orders))
+    elif num_tasks > 4:
+        print('什么鬼！！！ something wrong happen')
+        return
+    else:
+        print('not enough tasks')
+
+
 if __name__ == "__main__":
     # test_json()
     # test_normal_crud()
     # test_none()
-    task = Task.query.filter(Task.id == 3).one_or_none()
-    print(task.accepts)
+    # task = Task.query.filter(Task.id == 3).one_or_none()
+    # print(task.accepts)
+    test_time()
 
 # 测试使用
 # test_normal_crud()

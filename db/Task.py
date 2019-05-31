@@ -20,7 +20,7 @@ class Task(db.Model):
         `content` varchar(300) NOT NULL COMMENT '发布任务内容',
         `tag` varchar(30) DEFAULT NULL COMMENT '任务tag',
         PRIMARY KEY (`id`),
-        KEY `publish` (`publish_id`,`publish_time`),
+        KEY `publish` (`publish_id`,`id`),
         FULLTEXT KEY `task_text` (`title`,`content`),
         FULLTEXT KEY `task_tag` (`tag`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8
@@ -54,7 +54,7 @@ class Task(db.Model):
     tag = db.Column('tag', db.VARCHAR(30), comment='任务tag')
 
     __table_args__ = (
-        db.Index('publish', 'publish_id', 'publish_time'),
+        db.Index('publish', 'publish_id', 'id'),
         db.Index('task_tag', 'tag', mysql_prefix='FULLTEXT'),
         db.Index('task_text', 'title', 'content', mysql_prefix='FULLTEXT'),
     )
