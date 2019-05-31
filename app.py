@@ -7,8 +7,9 @@ from db import db_helper, app, model_repr
 from config import make_pattern
 from tools import utils
 from flask import Flask, request, json
-from responses.manage_users import register_, get_verification_code_, enter_event_and_run_scheduler
-from responses.get_tasks import get_tasks_by_
+# from responses.manage_users import register_, get_verification_code_, enter_event_and_run_scheduler
+# from responses.get_tasks import get_tasks_by_
+from responses import register_, get_verification_code_, enter_event_and_run_scheduler, get_tasks_by_
 
 
 @app.route('/')
