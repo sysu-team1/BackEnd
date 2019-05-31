@@ -20,7 +20,7 @@ SQLALCHEMY_ECHO = False
 
 # student attr list
 STUDENT_JSON_ATTR_ORDER = [
-    'openid', 'email', 'password', 'sex', 'collage', 'grade', 'edu_bg', 'tag', 'signature']
+    'openid', 'email', 'password', 'student_id', 'sex', 'collage', 'grade', 'edu_bg', 'tag', 'signature']
 STUDENT_JSON_PATTERN = make_pattern(len(STUDENT_JSON_ATTR_ORDER))
 
 # organization attr list

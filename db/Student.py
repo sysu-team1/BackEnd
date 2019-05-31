@@ -36,6 +36,8 @@ class Student(db.Model):
         20), nullable=False, comment='学校邮箱')
     password = db.Column('password', db.VARCHAR(
         20), nullable=False, comment='密码')
+    student_id = db.Column('student_id', db.VARCHAR(
+        10), nullable=False, server_default='', comment='学号')
     sex = db.Column('sex', db.Enum(
         *SEX), server_default=SEX[0], comment='用户性别')  # default的话是在插入时才有的
     collage = db.Column('collage', db.VARCHAR(
@@ -94,5 +96,5 @@ def random_stus(num):
         signature = ' '.join(['word{}'.format(
             j) for j in range(start, start + length)])
         stus.append(Student(email='email{}@qq.com'.format(i), password='pass{}'.format(
-            i), sex=sex, collage=collage, grade=grade, edu_bg=edu_bg, tag=tag, signature=signature))
+            i), student_id="16340{:0>3d}".format(i), sex=sex, collage=collage, grade=grade, edu_bg=edu_bg, tag=tag, signature=signature))
     return stus
