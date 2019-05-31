@@ -17,5 +17,6 @@ def get_tasks_by_(args):
 		tasks = db_helper.get_task_by_tag(args.get(tag), last_id = args.get('last_id'))
 	elif(text in args):
 		tasks = db_helper.get_task_by_text(args.get(text), last_id = args.get('last_id'))
-	res = {'error': 0, 'data': {'msg': '获取成功', 'tasks': tasks}}
+		tasks_str = '[' + ','.join([str(task) for task in tasks]) + ']'
+	res = "{'error': 0, 'data': {'msg': '获取成功', 'tasks': " + tasks_str + "}}"
 	return str(res)

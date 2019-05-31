@@ -38,13 +38,6 @@ def login():
 @app.route('/user/register/', methods=['POST'])
 def register():
 	print('email' + request.form['email'])
-	# print('password' + request.form['password'])
-	# print('validate_code' + request.form['validate_code'])
-	# print('name' + request.form['name'])
-	# print('student_id' + request.form['student_id'])
-	# print('grade' + request.form['grade'])
-	# print('major' + request.form['major'])
-	# print('sex' + request.form['sex'])
 	return register_(request.form['email'], request.form['password'], request.form['student_id'],
 					request.form['sex'], request.form['collage'], 
 					request.form['grade'], request.form['edu_bg'],
