@@ -75,7 +75,6 @@ class DBHelper:
         for data in datas:
             self.delete(data)
 
-
     def sign_in_true(self, type, email, password):
         '''登陆验证功能
         input: 
@@ -90,19 +89,18 @@ class DBHelper:
         # 查找学生中是否存在这个账号
         if type == 'stu':
             stu = Student.query.filter(Student.email == email).one_or_none()
-            if stu != None:
+            if stu is not None:
                 if password == stu.password:
                     return 0, '', stu.openid
                 return 1, 'password not right', ''
         elif type == 'org':
             org = Organization.query.filter(Organization.email == email).one_or_none()
-            if org != None:  
+            if org is not None:  
                 if org.password == password:
                     return 0, '', org.openid
                 return 1, 'password not right', ''
         # 未注册
         return 1, 'not exist', '', 
-
 
     def sign_up_true(self, email, password, sex, collage, grade, edu_bg):
         '''验证邮箱是否已被注册
@@ -124,7 +122,7 @@ class DBHelper:
             openid
         '''
         stu = Student.query.filter(Student.email == email).one_or_none()
-        if stu != None:
+        if stu is not None:
             return 1, 'already exist', None
         else:
             # 插入数据库
@@ -134,7 +132,6 @@ class DBHelper:
             self.commit()
             stu = Student.query.filter(Student.email == email).one_or_none()
             return 0, "", stu.openid
-
 
     def query_student(self, openid, get_all=False):
         ''' 根据openid查找student，get_publish指定是否获取该student发布的任务与接受的任务 '''
