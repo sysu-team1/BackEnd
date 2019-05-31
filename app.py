@@ -56,7 +56,7 @@ def get_verification_code():
 	return get_verification_code_(request.form['email'])
 
 
-@app.route('/tasks/search_by/', methods=['GET'])
+@app.route('/tasks/search/', methods=['GET'])
 def get_tasks_by():
 	return get_tasks_by_(request.args)
 
