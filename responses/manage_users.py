@@ -16,9 +16,9 @@ scheduler_lock = Lock()
 is_scheduler_running = False # 判定调度器是否正在运行
 
 # 测试场合
-time_limit = 60 * 0.2
+# time_limit = 60 * 0.2
 # 实际场合
-# time_limit = 60 * 5
+time_limit = 60 * 5
 
 
 def register_(email, password, student_id, sex, collage, grade, edu_bg, validate_code):
