@@ -1,6 +1,6 @@
-# from tools import utils  # ModuleNotFoundError: No module named 'secret_key'
-# code = utils.send_email(rcptto='653128964@qq.com')
-# print(code)
+from tools import utils
+code = utils.send_email(rcptto='653128964@qq.com')
+print(code)
 
 # ---------- test db ----------
 from db import db_helper, app, model_repr
