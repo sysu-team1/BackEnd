@@ -60,3 +60,40 @@ def generate_verification_code():
         output: code
     '''
     return ''.join(random.sample(constants.code_element_list, 6))
+
+
+def model_repr(obj, pattern: str, orders):
+    ''' 返回制定的样式
+
+    参数：
+        obj：从数据库中查询的结果
+        pattern：模式字符串
+        orders：需要的属性的顺序
+    '''
+    temp = []
+    for order in orders:
+        temp.append('"{}"'.format(order))
+        attr = getattr(obj, order)
+        if attr is None:
+            attr = '""'
+        elif isinstance(attr, (str)):
+            attr = '"{}"'.format(attr)
+        else:
+            attr = str(attr)
+        temp.append(attr)
+    return pattern % tuple(temp)
+
+
+def make_pattern(orders_len: int):
+    '''用于获取指定长度的匹配字符串
+    
+    参数：
+        orders_len: 指定属性的列表的长度
+    '''
+    if orders_len <= 0:
+        raise AttributeError('orders_len can not be less than 1')
+    pattern = r'{'
+    for _ in range(orders_len - 1):
+        pattern += '%s: %s, '
+    pattern += r'%s: %s}'
+    return pattern

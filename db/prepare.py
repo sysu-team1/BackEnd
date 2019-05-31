@@ -3,6 +3,7 @@
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from tools.utils import model_repr
 
 app = Flask(__name__)
 app.config.from_pyfile('../config.py')
@@ -15,25 +16,3 @@ ALL_TAGS = ['questionnaire', 'take out', 'others']
 QUESTIONNAIRE_INDEX = 0
 SPLIT_STU_ORG = 1000000
 SPLIT_ANSWER = '#'
-
-
-def model_repr(obj, pattern: str, orders):
-    ''' 返回制定的样式
-
-    参数：
-        obj：从数据库中查询的结果
-        pattern：模式字符串
-        orders：需要的属性的顺序
-    '''
-    temp = []
-    for order in orders:
-        temp.append('"{}"'.format(order))
-        attr = getattr(obj, order)
-        if attr is None:
-            attr = '""'
-        elif isinstance(attr, (str)):
-            attr = '"{}"'.format(attr)
-        else:
-            attr = str(attr)
-        temp.append(attr)
-    return pattern % tuple(temp)

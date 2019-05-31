@@ -17,7 +17,7 @@ def test():
     # orders = ['email', 'password']
     # return model_repr(db_helper.query_student(openid=1000000), make_pattern(len(orders)), orders)
     # --------- 尝试获取10个task
-    tasks = db_helper.search_task_by_time()
+    tasks = db_helper.get_task()
     tasks = '{"tasks": [' + ','.join([str(task) for task in tasks]) + ']}'
     return tasks
     # --------- 尝试获取1个student

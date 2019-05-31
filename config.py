@@ -1,20 +1,9 @@
-def make_pattern(orders_len: int):
-    '''用于获取指定长度的匹配字符串
-    
-    参数：
-        orders_len: 指定属性的列表的长度
-    '''
-    if orders_len <= 0:
-        raise AttributeError('orders_len can not be less than 1')
-    pattern = r'{'
-    for _ in range(orders_len - 1):
-        pattern += '%s: %s, '
-    pattern += r'%s: %s}'
-    return pattern
+from tools.utils import make_pattern
 
 
 # 主机的MySQL账号:密码:端口号/数据库
-SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:mysql@localhost:3306/test2'
+# SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:mysql@localhost:3306/test2'
+SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:960919AB@localhost:3308/test2'
 # 是否输出
 SQLALCHEMY_ECHO = False
 
