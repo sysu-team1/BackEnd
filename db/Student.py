@@ -38,6 +38,8 @@ class Student(db.Model):
         20), nullable=False, comment='密码')
     student_id = db.Column('student_id', db.VARCHAR(
         10), nullable=False, server_default='', comment='学号')
+    name = db.Column('name', db.VARCHAR(
+        100), server_default='', comment='名称')
     sex = db.Column('sex', db.Enum(
         *SEX), server_default=SEX[0], comment='用户性别')  # default的话是在插入时才有的
     collage = db.Column('collage', db.VARCHAR(
@@ -50,6 +52,7 @@ class Student(db.Model):
         100), server_default='', comment='与任务相关的标签')
     signature = db.Column('signature', db.VARCHAR(
         300), server_default='', comment='用户签名')
+    cash = db.Column('cash', db.Integer(), server_default=0, comment='拥有的币')
 
     __table_args__ = (
         db.PrimaryKeyConstraint('openid'),

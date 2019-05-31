@@ -9,11 +9,12 @@ SQLALCHEMY_ECHO = False
 
 # student attr list
 STUDENT_JSON_ATTR_ORDER = [
-    'openid', 'email', 'password', 'student_id', 'sex', 'collage', 'grade', 'edu_bg', 'tag', 'signature']
+    'openid', 'email', 'password', 'student_id', 'name', 'sex', 'collage', 'grade', 'edu_bg', 'tag', 'signature', 'cash']
 STUDENT_JSON_PATTERN = make_pattern(len(STUDENT_JSON_ATTR_ORDER))
 
 # organization attr list
-ORGANIZATION_JSON_ATTR_ORDER = ['openid', 'email', 'password', 'description']
+ORGANIZATION_JSON_ATTR_ORDER = [
+    'openid', 'email', 'password', 'name', 'description', 'cash']
 ORGANIZATION_JSON_PATTERN = make_pattern(len(ORGANIZATION_JSON_ATTR_ORDER))
 
 # task attr list

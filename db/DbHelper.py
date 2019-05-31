@@ -2,14 +2,16 @@ import datetime
 import random
 import time
 
-from .prepare import app, db, ALL_TAGS, QUESTIONNAIRE_INDEX
-from .Student import Student, random_stus
-from .Organization import Organization, random_orgs
-from .Task import Task, random_tasks
-from .Accept import Accept, random_accepts
-from .Problem import Problem, random_problems
-from .Answer import Answer, random_answers
 from config import make_pattern
+
+from .prepare import model_repr
+from .Accept import Accept, random_accepts
+from .Answer import Answer
+from .Organization import Organization, random_orgs
+from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db
+from .Problem import Problem
+from .Student import Student, random_stus
+from .Task import Task, random_tasks
 
 update_add_num = app.config['UPDATE_ADD_NUM']
 
@@ -42,6 +44,7 @@ class DBHelper:
     def save(self, data):
         '''保存一个数据'''
         self.session.add(data)
+        self.commit()
 
     def save_all(self, datas):
         '''保存批量数据'''
@@ -70,6 +73,7 @@ class DBHelper:
         if isinstance(data, (Student, Organization)):
             Task.query.filter(Task.publish_id == data.openid).delete()
         self.session.delete(data)
+        self.commit()
 
     def delete_all(self, datas):
         '''删除批量数据'''
@@ -297,10 +301,70 @@ class DBHelper:
         if sort:
             query = query.order_by(Task.id.desc())
         tasks = query.offset(start).limit(length).all()
-        if get_publisher and tasks is not None and len(tasks) > 0:
+        if tasks is not None and get_publisher:
             for task in tasks:
                 self.get_publisher(task)
         return tasks
+
+    def charge(self, openid, money_num):
+        '''充钱  
+        Args:
+            openid: 学生或者组织的id
+            money_num: 充的钱的数量
+        Return:
+            bool: 表示是否成功
+            mess: 失败的原因，如果成功则为空
+        '''
+        if money_num <= 0:
+            return False, 'money can not be less than or equals zero.'
+        try:
+            target = Student.query.filter(Student.openid == openid).with_for_update().one_or_none(
+            ) if openid >= app.config['SPLIT_STU_ORG'] else Organization.query.filter(Organization.openid == openid).with_for_update().one_or_none()
+            target_money = target.cash + money_num
+            target.cash = target_money
+            self.commit()
+            return True, ''
+        except Exception as e:
+            self.session.rollback()
+            return False, str(e)
+        # if target.cash == target_money:
+        #     return True
+        # self.rollback()
+        # return False
+
+    def carry_over(self, source_id, target_id, money_num):
+        '''转账，从source_id处转到target_id处，转移money_num个币  
+        Args:
+            source_id: 币来源
+            target_id: 币去处
+            money_num: 币数量
+        Return:
+            bool: 表示是否成功
+            mess: 失败的原因，如果成功则为空
+        '''
+        if money_num <= 0:
+            return False, 'money can not be less than or equals zero.'
+        try:
+            source = Student.query.filter(Student.openid == source_id).with_for_update().one_or_none(
+            ) if source_id >= app.config['SPLIT_STU_ORG'] else Organization.query.filter(Organization.openid == source_id).with_for_update().one_or_none()
+            if money_num > source.cash:
+                return False, 'not enough money'
+            target = Student.query.filter(Student.openid == target_id).with_for_update().one_or_none()
+            source.cash -= money_num
+            target.cash += money_num
+            self.commit()
+            return True, ''
+        except Exception as e:
+            self.rollback()
+            return False, str(e)
+
+    def cash_in(self, openid, money_num):
+        '''套现  
+        Args:
+            openid: 学生或者组织的id
+            money_num: 套现的钱的数量
+        '''
+        raise NotImplementedError('暂不支持套现')
 
 
 db_helper = DBHelper(db, drop_all=app.config['DROP_ALL'])

@@ -28,8 +28,11 @@ class Organization(db.Model):
         20), nullable=False, comment='学校邮箱')
     password = db.Column('password', db.VARCHAR(
         20), nullable=False, comment='密码')
+    name = db.Column('name', db.VARCHAR(
+        100), server_default='', comment='名称')
     description = db.Column('description', db.VARCHAR(
         300), server_default='', comment='组织描述')
+    cash = db.Column('cash', db.Integer(), server_default=0, comment='拥有的币')
 
     __table_args__ = (
         db.PrimaryKeyConstraint('openid'),
