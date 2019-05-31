@@ -21,7 +21,7 @@ time_limit = 60 * 0.2
 # time_limit = 60 * 5
 
 
-def register_(email, password, sex, collage, grade, edu_bg, validate_code):
+def register_(email, password, student_id, sex, collage, grade, edu_bg, validate_code):
 	res = {}
 	if(email not in codes):
 		res = {'error': 1, 'data': {'msg': '未获取验证码或验证码过期'}}
@@ -31,7 +31,7 @@ def register_(email, password, sex, collage, grade, edu_bg, validate_code):
 		'''
 		判断邮箱是否被注册
 		'''
-		error_code, error_message, openid = db_helper.sign_up_true(email, password, sex, collage, grade, edu_bg)
+		error_code, error_message, openid = db_helper.sign_up_true(email, password, student_id, sex, collage, grade, edu_bg)
 		if(error_code == 0):
 			try:
 				codes.pop(email)

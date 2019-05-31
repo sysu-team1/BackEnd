@@ -109,7 +109,7 @@ class DBHelper:
             return 1, 'password not right', ''
         return 1, 'not exist', ''
 
-    def sign_up_true(self, email, password, sex, collage, grade, edu_bg):
+    def sign_up_true(self, email, password, student_id, sex, collage, grade, edu_bg):
         '''验证邮箱是否已被注册
             如果未注册，则插入数据库并反馈信息
             如果注册，则反馈失败信息
@@ -132,7 +132,7 @@ class DBHelper:
         if stu is not None:
             return 1, 'already exist', None
         # 插入数据库
-        stu = Student(email=email, password=password, sex=sex, collage=collage, grade=grade, edu_bg=edu_bg)
+        stu = Student(email=email, password=password, student_id=student_id, sex=sex, collage=collage, grade=grade, edu_bg=edu_bg)
         self.save(stu)
         self.commit()
         return 0, "", stu.openid

@@ -32,7 +32,7 @@ def register():
 	# print('grade' + request.form['grade'])
 	# print('major' + request.form['major'])
 	# print('sex' + request.form['sex'])
-	return register_(request.form['email'], request.form['password'],  
+	return register_(request.form['email'], request.form['password'], request.form['student_id'],
 					request.form['sex'], request.form['collage'], 
 					request.form['grade'], request.form['edu_bg'],
 					request.form['validate_code'])
