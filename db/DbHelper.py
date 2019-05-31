@@ -9,6 +9,7 @@ from .Task import Task, random_tasks
 from .Accept import Accept, random_accepts
 from .Problem import Problem, random_problems
 from .Answer import Answer, random_answers
+from config import make_pattern
 
 update_add_num = app.config['UPDATE_ADD_NUM']
 
