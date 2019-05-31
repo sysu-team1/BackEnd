@@ -1,4 +1,5 @@
-__all__ = ["prepare", "DbHelper", "Student", "Organization", "Task", "Accept", "Problem", "Answer"]
+__all__ = ["db", "app", "model_repr", "db_helper", "Student",
+           "random_stus", "Organization", "random_orgs", "Task", "random_tasks", "Accept", "random_accepts", "Problem", "random_problems", "Answer", "random_answers"]
 
 from .prepare import db, app, model_repr
 from .DbHelper import db_helper
