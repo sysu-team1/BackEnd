@@ -63,4 +63,5 @@ def get_tasks_by():
 
 
 if __name__ == "__main__":
+    enter_event_and_run_scheduler()
     app.run(debug=True)
