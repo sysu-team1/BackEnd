@@ -2,8 +2,8 @@ from tools.utils import make_pattern
 
 
 # 主机的MySQL账号:密码:端口号/数据库
-# SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:mysql@localhost:3306/test2'
-SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:960919AB@localhost:3308/test2'
+SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:mysql@localhost:3306/test2'
+# SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:960919AB@localhost:3308/test2'
 # 是否输出
 SQLALCHEMY_ECHO = False
 
