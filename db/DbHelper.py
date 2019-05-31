@@ -10,6 +10,8 @@ from .Accept import Accept, random_accepts
 from .Problem import Problem, random_problems
 from .Answer import Answer, random_answers
 
+update_add_num = app.config['UPDATE_ADD_NUM']
+
 
 class DBHelper:
     '''
@@ -39,7 +41,6 @@ class DBHelper:
 
     def save(self, data):
         '''保存一个数据'''
-        # TODO 检查是否已经save过了
         self.session.add(data)
 
     def save_all(self, datas):
@@ -160,7 +161,7 @@ class DBHelper:
         '''根据accept_id与task.id查询是否已经接受该任务了'''
         return Accept.query.filter(Accept.accept_id == accept_id, Accept.task_id == task_id).one_or_none() is not None
 
-    def get_publish_tasks(self, openid, start=0, length=10, sort=True):
+    def get_publish_tasks(self, openid, start=0, length=update_add_num, sort=True):
         '''根据openid查找发布的任务  
         Args:
             openid:
@@ -173,7 +174,7 @@ class DBHelper:
             query = query.order_by(Task.publish_time.desc())
         return query.offset(start).limit(length).all()
 
-    def get_accept_tasks(self, openid, start=0, length=10, sort=True):
+    def get_accept_tasks(self, openid, start=0, length=update_add_num, sort=True):
         '''根据openid查找接受的任务  
         Args:
             openid:
@@ -187,7 +188,7 @@ class DBHelper:
             query = query.order_by(Accept.accept_time.desc())
         return query.offset(start).limit(length).all()
 
-    def get_recipient(self, id_or_task, start=0, length=10):
+    def get_recipient(self, id_or_task, start=0, length=update_add_num):
         '''根据task_id或者task查找接受任务者  
         Args:
             task_id:
@@ -238,7 +239,7 @@ class DBHelper:
             all_answers.append(problem.answers)
         return all_answers
 
-    def search_task_by_time(self, sort=True, get_publisher=True, start=0, length=10):
+    def search_task_by_time(self, sort=True, get_publisher=True, start=0, length=update_add_num):
         '''搜索Task  
         参数:
             sort: 表示是否按照时间排序
@@ -255,7 +256,7 @@ class DBHelper:
                 self.get_publisher(task)
         return tasks
 
-    def search_task_by_text(self, search_text, sort=True, get_publisher=True, start=0, length=10):
+    def search_task_by_text(self, search_text, sort=True, get_publisher=True, start=0, length=update_add_num):
         '''根据内容和标题搜索Task  
         参数:
             search_text: 表示用于搜索的文本
@@ -274,7 +275,7 @@ class DBHelper:
                 self.get_publisher(task)
         return tasks
 
-    def search_task_by_tag(self, search_tag, sort=True, get_publisher=True, start=0, length=10):
+    def search_task_by_tag(self, search_tag, sort=True, get_publisher=True, start=0, length=update_add_num):
         '''根据tag搜索Task  
         参数:
             search_tag: 表示用于搜索的tag

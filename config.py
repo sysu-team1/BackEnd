@@ -48,3 +48,4 @@ ANSWER_JSON_PATTERN = make_pattern(len(ANSWER_JSON_ATTR_ORDER))
 SPLIT_STU_ORG = 1000000  # student与orgnization间的openid切割
 SPLIT_ANSWER = '#'  # answer的切割符
 DROP_ALL = False  # 表示每次重启/启动时是否删除原有表
+UPDATE_ADD_NUM = 10  # 一次更新获取的值
