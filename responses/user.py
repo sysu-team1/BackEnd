@@ -57,8 +57,8 @@ def get_verification_code_(email):
 	# 正常情况
 	else:
 		''' 
-		测试生成验证码（不发送邮件）
-			code = utils.generate_verification_code()
+		# 测试生成验证码（不发送邮件）
+		# 	code = utils.generate_verification_code()
 		发送邮件并生成验证码
 			code = utils.send_email(rcptto=email)
 		'''
@@ -68,7 +68,7 @@ def get_verification_code_(email):
 			return str({'error': 1, 'error_message': '验证码发送失败'})
 		codes[email] = (code, time.time()) # 在本地记录验证码值
 		print('生成的验证码', codes[email])
-		print(is_scheduler_running)
+		# print(is_scheduler_running)
 		if(not is_scheduler_running): # 若调度器不在运行
 			enter_event_and_run_scheduler()
 		res	= {'error': 0, 'error_message': '验证码已发送'}
