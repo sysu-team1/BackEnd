@@ -107,7 +107,7 @@ class DBHelper:
         # # 未注册
         # return 1, 'not exist', '', 
         target = Student.query.filter(Student.email == email).one_or_none(
-        ) if type == 'stu' else Organization.query.filter(Organization.email == email).one_or_none()
+        ) if type == 'student' else Organization.query.filter(Organization.email == email).one_or_none()
         if target is not None:
             if target.password == password:
                 return 0, '', target.openid
