@@ -63,7 +63,9 @@ def get_verification_code_(email):
 			code = utils.send_email(rcptto=email)
 		'''
 		# code = '11111' # 生成验证码并发送至邮箱
-		code = utils.generate_verification_code()
+		code = utils.send_email(rcptto=email)
+		if code == -1:
+			return str({'error': 1, 'error_message': '验证码发送失败'})
 		codes[email] = (code, time.time()) # 在本地记录验证码值
 		print('生成的验证码', codes[email])
 		print(is_scheduler_running)

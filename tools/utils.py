@@ -9,7 +9,7 @@ from email.header import Header
 import secret_key, constants, random
 
 
-def send_email(rcptto, username=secret_key.USERNAME, password=secret_key.PASSWORD, replyto=secret_key.REPLYTO):
+def send_email(rcptto, username=secret_key.USERNAME, password=secret_key.PASSWORD, replyto=secret_key.REPLYTO, error=0):
     '''发送邮件
     参数：
         username 表示控制台创建的发件人地址
@@ -49,7 +49,12 @@ def send_email(rcptto, username=secret_key.USERNAME, password=secret_key.PASSWOR
         client.quit()
         print('邮件发送成功！')
     except Exception as e:
+        if error > 4:
+            return -1
         print('邮件发送异常, ', str(e))
+        print('重新发送中...')
+        error += 1
+        code = send_email(rcptto, error=error)
     return code
 
 
