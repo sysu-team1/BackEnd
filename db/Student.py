@@ -33,7 +33,7 @@ class Student(db.Model):
     openid = db.Column('openid', db.Integer(
     ), autoincrement=True, nullable=False, comment='用户的唯一标识符')
     email = db.Column('email', db.VARCHAR(
-        20), nullable=False, comment='学校邮箱')
+        40), nullable=False, comment='学校邮箱')
     password = db.Column('password', db.VARCHAR(
         20), nullable=False, comment='密码')
     student_id = db.Column('student_id', db.VARCHAR(
@@ -52,7 +52,7 @@ class Student(db.Model):
         100), server_default='', comment='与任务相关的标签')
     signature = db.Column('signature', db.VARCHAR(
         300), server_default='', comment='用户签名')
-    cash = db.Column('cash', db.Integer(), server_default=0, comment='拥有的币')
+    cash = db.Column('cash', db.Integer(), server_default='0', comment='拥有的币')
 
     __table_args__ = (
         db.PrimaryKeyConstraint('openid'),

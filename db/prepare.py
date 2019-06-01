@@ -1,6 +1,3 @@
-# 兴趣小组 TODO
-# 报酬系统 TODO
-
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from tools.utils import model_repr
