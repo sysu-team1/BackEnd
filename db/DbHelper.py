@@ -425,15 +425,15 @@ def test_normal_crud():
     for task in sample_tasks:
         print(task.id, task.publish_id, db_helper.get_publisher(task))
     print('---------- 根据时间查询10个幸运任务')
-    query_tasks_by_time = db_helper.search_task_by_time()
+    query_tasks_by_time = db_helper.get_task()
     for task in query_tasks_by_time:
         print(task)
     print('---------- 根据时间与tag查询10个幸运任务')
-    query_tasks_by_tag = db_helper.search_task_by_tag(search_tag='tag1')
+    query_tasks_by_tag = db_helper.get_task_by_tag(search_tag='tag1')
     for task in query_tasks_by_tag:
         print(task)
     print('---------- 根据时间与text查询10个幸运任务')
-    query_tasks_by_content = db_helper.search_task_by_text(search_text='word1')
+    query_tasks_by_content = db_helper.get_task_by_text(search_text='word1')
     for task in query_tasks_by_content:
         print(task)
     print('---------- 查找某些表单')
@@ -577,4 +577,5 @@ if __name__ == "__main__":
     test_time()
 
 # 测试使用
-# test_normal_crud()
+if app.config['ADD_RANDOM_SAMPLE']:
+    test_normal_crud()
