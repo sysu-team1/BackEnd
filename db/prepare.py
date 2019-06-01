@@ -6,10 +6,10 @@ app = Flask(__name__)
 app.config.from_pyfile('../config.py')
 db = SQLAlchemy(app)
 
-SEX = ['unknown', 'male', 'female']
-EDUBG = ['undergraduate', 'masterofscience', 'doctor']
+SEX = ['未知', '男', '女']
+EDUBG = ['本科', '硕士', '博士']
 DEFAULT_TIME = '2000-01-01 00:00:00'
-ALL_TAGS = ['questionnaire', 'take out', 'others']
+ALL_TAGS = ['问卷', '取快递', '其他']
 QUESTIONNAIRE_INDEX = 0
 SPLIT_STU_ORG = 1000000
 SPLIT_ANSWER = '#'

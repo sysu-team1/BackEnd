@@ -31,22 +31,25 @@ def login():
 	详情请见db_helper.sign_in_true
 	'''
 	error_code, error_message, openid = db_helper.sign_in_true(request.form['type'], request.form['email'], request.form['password'])
-	res = '{"error": ' + str(error_code) + ',' + '"error_message":'+ error_message + ',' + '"data": {"openid":' + str(openid) + '}}'
+	res = '{"error": ' + str(error_code) + ',' + '"error_message":"'+ error_message + '",' + '"data": {"openid":"' + str(openid) + '"}}'
 	return res
 
 
 @app.route('/user/register/', methods=['POST'])
 def register():
-	print('email' + request.form['email'])
+	print(request)
 	return register_(request.form['email'], request.form['password'], request.form['student_id'],
 					request.form['sex'], request.form['collage'], 
-					request.form['grade'], request.form['edu_bg'],
+					request.form['grade'], request.form['name'],
 					request.form['validate_code'])
 
 
 @app.route('/user/get_verification_code/', methods=['POST'])
 def get_verification_code():
 	# 生成验证码并发送至邮箱
+	# print(request.get_json())
+	# data = request.get_json()
+	# print(data['email'])
 	return get_verification_code_(request.form['email'])
 
 
