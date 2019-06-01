@@ -10,17 +10,20 @@ class Student(db.Model):
     ```sql
     CREATE TABLE `students` (
         `openid` int(11) NOT NULL AUTO_INCREMENT COMMENT '用户的唯一标识符',
-        `email` varchar(20) NOT NULL COMMENT '学校邮箱',
+        `email` varchar(40) NOT NULL COMMENT '学校邮箱',
         `password` varchar(20) NOT NULL COMMENT '密码',
+        `student_id` varchar(10) NOT NULL DEFAULT '' COMMENT '学号',
+        `name` varchar(100) DEFAULT '' COMMENT '名称',
         `sex` enum('unknown','male','female') DEFAULT 'unknown' COMMENT '用户性别',
         `collage` varchar(20) DEFAULT '' COMMENT '学院',
-        `grade` int NOT NULL DEFAULT 2016 COMMENT '入学年级',
+        `grade` int(11) NOT NULL DEFAULT '2016' COMMENT '入学年级',
         `edu_bg` enum('undergraduate','masterofscience','doctor') DEFAULT 'undergraduate' COMMENT '学历',
         `tag` varchar(100) DEFAULT '' COMMENT '与任务相关的标签',
         `signature` varchar(300) DEFAULT '' COMMENT '用户签名',
+        `cash` int(11) DEFAULT '0' COMMENT '拥有的币',
         PRIMARY KEY (`openid`),
         FULLTEXT KEY `stu_tag` (`tag`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+    ) ENGINE=InnoDB AUTO_INCREMENT=1000000 DEFAULT CHARSET=utf8
     ```
     属性:
         基础属性
