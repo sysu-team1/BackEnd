@@ -21,25 +21,25 @@ is_scheduler_running = False # 判定调度器是否正在运行
 time_limit = 60 * 5
 
 
-def register_(email, password, student_id, sex, collage, grade, edu_bg, validate_code):
+def register_(email, password, student_id, sex, collage, grade, name, validate_code):
 	res = {}
 	if(email not in codes):
-		res = {'error': 1, 'data': {'msg': '未获取验证码或验证码过期'}}
+		res = {'error': 1, 'error_message': '未获取验证码或验证码过期'}
 	elif(codes[email][0] != validate_code):
-		res = {'error': 1, 'data': {'msg': '验证码错误'}}
+		res = {'error': 1, 'error_message': '验证码错误'}
 	else:
 		'''
 		判断邮箱是否被注册
 		'''
-		error_code, error_message, openid = db_helper.sign_up_true(email, password, student_id, sex, collage, grade, edu_bg)
+		error_code, error_message, openid = db_helper.sign_up_true(email, password, student_id, sex, collage, grade, name)
 		if(error_code == 0):
 			try:
 				codes.pop(email)
 			except Exception as e:
 				print('Error:', e)
-			res = {'error': str(error_code), 'data': {'msg': error_message, 'openid': str(openid)}}
+			res = {'error': str(error_code), 'error_message': error_message, 'data': {'openid': str(openid)}}
 		else:
-			res = {'error': str(error_code), 'data': {'msg': error_message, 'openid': str(openid)}}
+			res = {'error': str(error_code), 'error_message': error_message, 'data': {'openid': str(openid)}}
 	return str(res)
 
 
@@ -52,7 +52,7 @@ def get_verification_code_(email):
 	res = {}
 	# 验证码还未过期的情况
 	if(email in codes):
-		res	= {'error': 1, 'data': {'msg': '原验证码未过期'}}
+		res	= {'error': 1, 'error_message': '原验证码未过期'}
 		print(str(res))
 	# 正常情况
 	else:
@@ -63,13 +63,15 @@ def get_verification_code_(email):
 			code = utils.send_email(rcptto=email)
 		'''
 		# code = '11111' # 生成验证码并发送至邮箱
-		code = utils.generate_verification_code()
+		code = utils.send_email(rcptto=email)
+		if code == -1:
+			return str({'error': 1, 'error_message': '验证码发送失败'})
 		codes[email] = (code, time.time()) # 在本地记录验证码值
 		print('生成的验证码', codes[email])
 		print(is_scheduler_running)
 		if(not is_scheduler_running): # 若调度器不在运行
 			enter_event_and_run_scheduler()
-		res	= {'error': 0, 'data': {'msg': '验证码已发送'}}
+		res	= {'error': 0, 'error_message': '验证码已发送'}
 	return str(res)
 
 

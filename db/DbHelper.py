@@ -111,10 +111,10 @@ class DBHelper:
         if target is not None:
             if target.password == password:
                 return 0, '', target.openid
-            return 1, 'password not right', ''
-        return 1, 'not exist', ''
+            return 1, '密码错误', ''
+        return 1, '账号不存在', ''
 
-    def sign_up_true(self, email, password, student_id, sex, collage, grade, edu_bg):
+    def sign_up_true(self, email, password, student_id, sex, collage, grade, name):
         '''验证邮箱是否已被注册
             如果未注册，则插入数据库并反馈信息
             如果注册，则反馈失败信息
@@ -137,7 +137,7 @@ class DBHelper:
         if stu is not None:
             return 1, 'already exist', None
         # 插入数据库
-        stu = Student(email=email, password=password, student_id=student_id, sex=sex, collage=collage, grade=grade, edu_bg=edu_bg)
+        stu = Student(email=email, password=password, student_id=student_id, sex=sex, collage=collage, grade=grade, name=name)
         self.save(stu)
         self.commit()
         return 0, "", stu.openid
