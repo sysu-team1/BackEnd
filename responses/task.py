@@ -1,6 +1,6 @@
 from db import db_helper, app, model_repr
 
-published_id = 'published_id'
+publisher_id  = 'publisher_id '
 accepter_id = 'accepter_id'
 tag = 'tag'
 text = 'text'
@@ -20,3 +20,7 @@ def get_tasks_by_(args):
 		tasks_str = '[' + ','.join([str(task) for task in tasks]) + ']'
 	res = "{'error': 0, 'data': {'msg': '获取成功', 'tasks': " + tasks_str + "}}"
 	return str(res)
+
+def create_task_(form):
+	# db_helper.save()
+	pass
