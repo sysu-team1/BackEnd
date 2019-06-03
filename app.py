@@ -128,8 +128,32 @@ def add_cash(open_id):
 @app.route("/my/<open_id>", methods=['GET'])
 def get_self_information(open_id):
 	# 获取用户个人信息
+	# TODO 还没有写完
 	print(db_helper.query_student(open_id))
 	return 'hhh'
+
+
+@app.route("/get_problem/<task_id>", methods=['GET'])
+def get_problem(task_id):
+	'''
+	获取问卷的信息
+	'''
+	return str({'error': 0, "data": {'problem_content': db_helper.get_all_problems(int(task_id))}})
+
+
+@app.route("/post_answer/", methods=['POST', 'GET'])
+def post_answer():
+	'''
+	提交问卷答案
+	需要task_id, open_id, answer_content，使用^进行切分
+	'''
+	
+	task_id = request.form['task_id']
+	answer_content = request.form['answer']
+	open_id = request.form['open_id']
+	db_helper.post_answer(task_id, answer_content, open_id)
+	return str({'error': 0, "data": {'msg': '提交成功'}})
+
 
 if __name__ == "__main__":
 	uploaded_photos = UploadSet('photos')

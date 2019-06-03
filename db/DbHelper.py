@@ -5,6 +5,7 @@ from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db
 from .Student import Student
 from .Task import Task
 from .Problem import Problem
+from .Answer import Answer
 import time
 
 update_add_num = app.config['UPDATE_ADD_NUM']
@@ -261,6 +262,39 @@ class DBHelper:
         else:
             task.publisher = Student.query.filter(Student.openid == task.publish_id).one()
         return task.publisher
+
+
+    def get_all_problems(self, task_id):
+        '''
+        根据task_id获取对应的所有问题
+        '''
+        all_problems = Problem.query.filter(Problem.task_id == task_id)
+        problem_content = ''
+        for problem in all_problems:
+            # 使用^作为problem的切分，使用$作为题目与答案的切分，使用#作为答案的切分
+            if problem_content != "":
+                problem_content += '^'
+            problem_content += (problem.description + "$" + problem.all_answers)
+        print(problem_content)
+        return problem_content
+
+
+    def post_answer(self, task_id, answer_content, open_id):
+        '''
+        提交问卷答案
+        '''
+        # TODO 逻辑上的一些问题 比如填完之后进行转账？还有limit_num减少
+        answer_list = answer_content.split('^')
+        all_problems = Problem.query.filter(Problem.task_id == task_id)
+        i = 0
+        answers = []
+        for problem in all_problems:
+            answers.append(Answer(accept_id=int(open_id), problem_id=problem.id, answer=int(answer_list[i])))
+            i += 1
+        print(answers)
+        self.save_all(answers)
+        self.commit()
+
 
     def get_all_answers(self, id_or_task):
         ''' 根据问卷id或者问卷获取所有的答案  
