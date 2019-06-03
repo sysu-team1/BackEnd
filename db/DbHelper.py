@@ -4,6 +4,8 @@ from .Organization import Organization
 from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db
 from .Student import Student
 from .Task import Task
+from .Problem import Problem
+import time
 
 update_add_num = app.config['UPDATE_ADD_NUM']
 
@@ -133,6 +135,38 @@ class DBHelper:
         self.save(stu)
         self.commit()
         return 0, "", stu.openid
+
+    def create_task(self, publish_id, limit_time, limit_num, title, content, tag):
+        '''创建任务
+
+        参数：
+        publish_id, 发布人id ，也就是open_id
+        limit_time, ddl
+        limit_num, 限制人数数量
+        title, task标题
+        content, 内容（如果tag为'w问卷'，则内容为问卷的内容）
+        tag, 标签
+
+        输出参数：
+        task
+        '''
+        task = Task(publish_id=publish_id, publish_time=time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 
+                        limit_time=limit_time, limit_num=limit_num, title=title, content=content, tag=tag)
+        self.save(task)
+        if tag == '问卷':
+            # 使用^作为problem的切分，使用$作为题目与答案的切分，使用#作为答案的切分
+            problems_list = content.split("^")
+            problems = []
+            for problems_list_element in problems_list:
+                problems_list_element = problems_list_element.split("$")
+                description = problems_list_element[0]
+                all_answers = problems_list_element[1]
+                problem = Problem(task_id = task.id, description=description, all_answers=all_answers)
+                problems.append(problem)
+            self.save_all(problems)
+            self.commit()
+        self.commit()
+        return task
 
     def query_student(self, openid, get_all=False):
         ''' 根据openid查找student，get_publish指定是否获取该student发布的任务与接受的任务 '''
