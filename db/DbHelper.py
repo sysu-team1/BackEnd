@@ -136,7 +136,7 @@ class DBHelper:
         self.commit()
         return 0, "", stu.openid
 
-    def create_task(self, publish_id, limit_time, limit_num, title, content, tag):
+    def create_task(self, publish_id, limit_time, limit_num, title, content, tag, reward, problem_content=''):
         '''创建任务
 
         参数：
@@ -146,16 +146,23 @@ class DBHelper:
         title, task标题
         content, 内容（如果tag为'w问卷'，则内容为问卷的内容）
         tag, 标签
-
+        reward, 报酬
+        problem_content, 问卷信息, 默认为空
         输出参数：
+        error
         task
         '''
+        # 判断发布人是否有足够的钱财进行发布任务
+        target = Student.query.filter(Student.openid == publish_id).one_or_none(
+        ) if publish_id >= str(100000) else Organization.query.filter(Organization.openid == publish_id).one_or_none()
+        if int(target.cash) < int(limit_num) * int(reward):
+            return 1, -1
         task = Task(publish_id=publish_id, publish_time=time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 
-                        limit_time=limit_time, limit_num=limit_num, title=title, content=content, tag=tag)
+                        limit_time=limit_time, limit_num=limit_num, title=title, content=content, tag=tag, reward=reward)
         self.save(task)
         if tag == '问卷':
             # 使用^作为problem的切分，使用$作为题目与答案的切分，使用#作为答案的切分
-            problems_list = content.split("^")
+            problems_list = problem_content.split("^")
             problems = []
             for problems_list_element in problems_list:
                 problems_list_element = problems_list_element.split("$")
@@ -166,7 +173,7 @@ class DBHelper:
             self.save_all(problems)
             self.commit()
         self.commit()
-        return task
+        return 0, task
 
     def query_student(self, openid, get_all=False):
         ''' 根据openid查找student，get_publish指定是否获取该student发布的任务与接受的任务 '''
@@ -428,3 +435,4 @@ if __name__ == "__main__":
 # 测试使用
 if app.config['ADD_RANDOM_SAMPLE']:
     test_normal_crud(db_helper)
+# test_normal_crud(db_helper)
