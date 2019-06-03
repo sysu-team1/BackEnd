@@ -54,6 +54,7 @@ class Task(db.Model):
         300), nullable=False, comment='发布任务内容')
     tag = db.Column('tag', db.VARCHAR(30), comment='任务tag')
     image_path = db.Column('image_path', db.VARCHAR(100), comment='任务关联图片的路径')
+    reward = db.Column('reward', db.Integer(), server_default='0', comment='任務报酬')
 
     __table_args__ = (
         db.Index('publish', 'publish_id', 'id'),
