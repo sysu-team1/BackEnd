@@ -20,7 +20,7 @@ ORGANIZATION_JSON_PATTERN = make_pattern(len(ORGANIZATION_JSON_ATTR_ORDER))
 
 # task attr list
 TASK_JSON_ATTR_ORDER = [
-    'id', 'publish_id', 'publish_time', 'limit_time', 'limit_num', 'accept_num', 'title', 'content', 'tag']
+    'id', 'publish_id', 'publish_time', 'limit_time', 'limit_num', 'accept_num', 'title', 'content', 'tag', 'image_path']
 TASK_JSON_PATTERN = make_pattern(len(TASK_JSON_ATTR_ORDER))
 
 # accept task attr list

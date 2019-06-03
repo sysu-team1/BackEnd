@@ -19,6 +19,7 @@ class Task(db.Model):
         `title` varchar(50) NOT NULL COMMENT '发布任务标题',
         `content` varchar(300) NOT NULL COMMENT '发布任务内容',
         `tag` varchar(30) DEFAULT NULL COMMENT '任务tag',
+        `image_path` varchar(100) DEFAULT NULL COMMENT '任务关联图片的路径',
         PRIMARY KEY (`id`),
         KEY `publish` (`publish_id`,`id`),
         FULLTEXT KEY `task_text` (`title`,`content`),
@@ -52,6 +53,7 @@ class Task(db.Model):
     content = db.Column('content', db.VARCHAR(
         300), nullable=False, comment='发布任务内容')
     tag = db.Column('tag', db.VARCHAR(30), comment='任务tag')
+    image_path = db.Column('image_path', db.VARCHAR(100), comment='任务关联图片的路径')
 
     __table_args__ = (
         db.Index('publish', 'publish_id', 'id'),
