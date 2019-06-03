@@ -59,7 +59,7 @@ def get_tasks_by():
 	return get_tasks_by_(request.args)
 
 
-@app.route('/tast/create/', methods=['POST'])
+@app.route('/tasks/create/', methods=['POST'])
 def create_task():
 	''' 任务的创建
 	参数：
@@ -141,7 +141,7 @@ def get_problem(task_id):
 	return str({'error': 0, "data": {'problem_content': db_helper.get_all_problems(int(task_id))}})
 
 
-@app.route("/post_answer/", methods=['POST', 'GET'])
+@app.route("/post_answer/", methods=['POST'])
 def post_answer():
 	'''
 	提交问卷答案
@@ -153,6 +153,12 @@ def post_answer():
 	open_id = request.form['open_id']
 	db_helper.post_answer(task_id, answer_content, open_id)
 	return str({'error': 0, "data": {'msg': '提交成功'}})
+
+
+@app.route("/get_answer/<task_id>", methods=['GET'])
+def get_answer(task_id):
+	# TODO 获取问卷的所有答案
+	pass
 
 
 if __name__ == "__main__":
