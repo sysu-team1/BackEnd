@@ -409,8 +409,8 @@ class DBHelper:
             openid: 学生或者组织的id
             money_num: 充的钱的数量
         Return:
-            bool: 表示是否成功
-            mess: 失败的原因，如果成功则为空
+            flag: bool 表示是否成功
+            msg: str 失败的原因，如果成功则为空
         '''
         if money_num <= 0:
             return False, 'money can not be less than or equals zero.'
@@ -436,8 +436,8 @@ class DBHelper:
             target_id: 币去处
             money_num: 币数量
         Return:
-            bool: 表示是否成功
-            mess: 失败的原因，如果成功则为空
+            flag: bool 表示是否成功
+            msg: str 失败的原因，如果成功则为空
         '''
         if money_num <= 0:
             return False, 'money can not be less than or equals zero.'
