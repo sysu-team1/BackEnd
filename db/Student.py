@@ -101,6 +101,7 @@ def random_stus(num):
         start, length = random.randint(1, 20), random.randint(10, 15)
         signature = ' '.join(['word{}'.format(
             j) for j in range(start, start + length)])
+        cash = random.randint(10, 5000)
         stus.append(Student(email='email{}@qq.com'.format(i), password='pass{}'.format(
-            i), student_id="16340{:0>3d}".format(i), sex=sex, collage=collage, grade=grade, edu_bg=edu_bg, tag=tag, signature=signature))
+            i), student_id="16340{:0>3d}".format(i), name="16340{:0>3d}".format(i), sex=sex, collage=collage, grade=grade, edu_bg=edu_bg, tag=tag, signature=signature, cash=cash))
     return stus

@@ -190,3 +190,14 @@ def test_time(db_helper, update_add_num):
         return
     else:
         print('not enough tasks')
+
+
+def test_create_student_and_organization(db_helper):
+    '''
+    # 只产生学生与组织
+    '''
+    stus = random_stus(10)
+    org = random_orgs(10)
+    db_helper.save_all(stus)
+    db_helper.save_all(org)
+    db_helper.commit()

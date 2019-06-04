@@ -1,4 +1,4 @@
-from .test import test_json, test_normal_crud, test_time
+from .test import test_json, test_normal_crud, test_time, test_create_student_and_organization
 from .Accept import Accept
 from .Organization import Organization
 from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db
@@ -470,3 +470,4 @@ if __name__ == "__main__":
 if app.config['ADD_RANDOM_SAMPLE']:
     test_normal_crud(db_helper)
 # test_normal_crud(db_helper)
+# test_create_student_and_organization(db_helper)
