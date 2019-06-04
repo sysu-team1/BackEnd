@@ -63,46 +63,46 @@ def get_tasks_by():
 def create_task():
 	''' 任务的创建
 	参数：
-        publish_id, 发布人id ，也就是open_id
-        limit_time, ddl
-        limit_num, 限制人数数量
-        title, task标题
-        content, 内容（如果tag为'问卷'，则内容为问卷的内容）
-        tag, 标签
-        reward
+		publish_id, 发布人id ，也就是open_id
+		limit_time, ddl
+		limit_num, 限制人数数量
+		title, task标题
+		content, 内容（如果tag为'问卷'，则内容为问卷的内容）
+		tag, 标签
+		reward
 	output： 
 	"error": 0/1,
 	"data": {
-		"msg": "余额不足/创建成功",
-		"task_id" : 任务id
+		"msg": "余额不足/创建成功/'没有图片上传'/'创建成功'/'图片上传失败'",
 	}
 	'''
-	problem_content = '' if 'problem_content' not in request.form.to_dict() else request.form['problem_content']
-	error, new_task = db_helper.create_task(request.form['open_id'], request.form['limit_time'], request.form['limit_num'], request.form['title'], request.form['content'], request.form['tag'], request.form['reward'], problem_content)
+	print(request.files)
+	problem_content = '' if request.form['tag'] != '问卷' else request.form['problem_content']
+	error, new_task = db_helper.create_task(int(request.form['openid']), request.form['limit_time'], request.form['limit_num'], request.form['title'], request.form['content'], request.form['tag'], request.form['reward'], problem_content)
 	if error == 1:
-		return str({'error': 1, "data": {'msg': '余额不足', 'task_id': ''}})
+		return str({'error': 1, "data": {'msg': '余额不足'}})
 	task_id = new_task.id
-	return str({'error': 0, "data": {'msg': '创建成功', 'task_id': str(task_id)}})
+	# return str({'error': 0, "data": {'msg': '创建成功', 'task_id': str(task_id)}})
 	# 暂时找不到text与file同时上传的方法，先留着
-	# if 'photo' not in request.files:
-	# 	print('No file part')
-	# 	return str({'error': 1, "data": {'msg': '没有图片上传'}})
-	# photo = request.files['photo']
-	# # if user does not select file, browser also submit a empty part without filename
-	# if photo.filename == '':
-	# 	print('No selected file')
-	# 	return str({'error': 1, "data": {'msg': '没有图片上传'}})
-	# else:
-	# 	try:
-	# 		# 为了保证安全性，添加一个随机数（此处使用邮箱验证码的函数）
-	# 		photo.filename = generate_verification_code() + '-' + str(task_id) + '.png'
-	# 		uploaded_photos.save(photo)
-	# 		new_task.image_path = uploaded_photos.url(photo.filename)
-	# 		db_helper.commit()
-	# 		return str({'error': 0, "data": {'msg': '创建成功'}})
-	# 	except Exception as e:
-	# 		print('upload file exception: %s' % e)
-	# 		return str({'error': 1, "data": {'msg': '图片上传失败'}})
+	if 'photo' not in request.files:
+		print('No file part')
+		return str({'error': 1, "data": {'msg': '没有图片上传'}})
+	photo = request.files['photo']
+	# if user does not select file, browser also submit a empty part without filename
+	if photo.filename == '':
+		print('No selected file')
+		return str({'error': 1, "data": {'msg': '没有图片上传'}})
+	else:
+		try:
+			# 为了保证安全性，添加一个随机数（此处使用邮箱验证码的函数）
+			photo.filename = generate_verification_code() + '-' + str(task_id) + '.png'
+			uploaded_photos.save(photo)
+			new_task.image_path = uploaded_photos.url(photo.filename)
+			db_helper.commit()
+			return str({'error': 0, "data": {'msg': '创建成功'}})
+		except Exception as e:
+			print('upload file exception: %s' % e)
+			return str({'error': 1, "data": {'msg': '图片上传失败'}})
 
 
 @app.route('/tasks/upload_photo/<task_id>', methods=['POST', 'GET'])

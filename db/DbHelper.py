@@ -155,7 +155,7 @@ class DBHelper:
         '''
         # 判断发布人是否有足够的钱财进行发布任务
         target = Student.query.filter(Student.openid == publish_id).one_or_none(
-        ) if publish_id >= str(100000) else Organization.query.filter(Organization.openid == publish_id).one_or_none()
+        ) if publish_id >= 100000 else Organization.query.filter(Organization.openid == publish_id).one_or_none()
         if int(target.cash) < int(limit_num) * int(reward):
             return 1, -1
         task = Task(publish_id=publish_id, publish_time=time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 
