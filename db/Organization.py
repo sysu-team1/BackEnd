@@ -57,5 +57,5 @@ def random_orgs(num):
         description = ' '.join(['word{}'.format(
             j) for j in range(start, start + length)])
         orgs.append(Organization(email='email{}@qq.com'.format(i), password='pass{}'.format(
-            i), description=description))
+            i), name= 'pass{}'.format(i), description=description, cash=random.randint(100, 5000)))
     return orgs

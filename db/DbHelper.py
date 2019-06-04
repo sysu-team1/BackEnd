@@ -1,10 +1,11 @@
-from .test import test_json, test_normal_crud, test_time
+from .test import test_json, test_normal_crud, test_time, test_create_student_and_organization
 from .Accept import Accept
 from .Organization import Organization
 from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db
 from .Student import Student
 from .Task import Task
 from .Problem import Problem
+from .Answer import Answer
 import time
 
 update_add_num = app.config['UPDATE_ADD_NUM']
@@ -139,7 +140,7 @@ class DBHelper:
         self.commit()
         return 0, "", stu.openid
 
-    def create_task(self, publish_id, limit_time, limit_num, title, content, tag):
+    def create_task(self, publish_id, limit_time, limit_num, title, content, tag, reward, problem_content=''):
         '''创建任务
 
         参数：
@@ -149,16 +150,23 @@ class DBHelper:
         title, task标题
         content, 内容（如果tag为'w问卷'，则内容为问卷的内容）
         tag, 标签
-
+        reward, 报酬
+        problem_content, 问卷信息, 默认为空
         输出参数：
+        error
         task
         '''
+        # 判断发布人是否有足够的钱财进行发布任务
+        target = Student.query.filter(Student.openid == publish_id).one_or_none(
+        ) if publish_id >= 100000 else Organization.query.filter(Organization.openid == publish_id).one_or_none()
+        if int(target.cash) < int(limit_num) * int(reward):
+            return 1, -1
         task = Task(publish_id=publish_id, publish_time=time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 
-                        limit_time=limit_time, limit_num=limit_num, title=title, content=content, tag=tag)
+                        limit_time=limit_time, limit_num=limit_num, title=title, content=content, tag=tag, reward=reward)
         self.save(task)
         if tag == '问卷':
             # 使用^作为problem的切分，使用$作为题目与答案的切分，使用#作为答案的切分
-            problems_list = content.split("^")
+            problems_list = problem_content.split("^")
             problems = []
             for problems_list_element in problems_list:
                 problems_list_element = problems_list_element.split("$")
@@ -169,7 +177,7 @@ class DBHelper:
             self.save_all(problems)
             self.commit()
         self.commit()
-        return task
+        return 0, task
 
     def query_student(self, openid, get_all=False):
         ''' 根据openid查找student，get_publish指定是否获取该student发布的任务与接受的任务 '''
@@ -257,6 +265,39 @@ class DBHelper:
         else:
             task.publisher = Student.query.filter(Student.openid == task.publish_id).one()
         return task.publisher
+
+
+    def get_all_problems(self, task_id):
+        '''
+        根据task_id获取对应的所有问题
+        '''
+        all_problems = Problem.query.filter(Problem.task_id == task_id)
+        problem_content = ''
+        for problem in all_problems:
+            # 使用^作为problem的切分，使用$作为题目与答案的切分，使用#作为答案的切分
+            if problem_content != "":
+                problem_content += '^'
+            problem_content += (problem.description + "$" + problem.all_answers)
+        print(problem_content)
+        return problem_content
+
+
+    def post_answer(self, task_id, answer_content, open_id):
+        '''
+        提交问卷答案
+        '''
+        # TODO 逻辑上的一些问题 比如填完之后进行转账？还有limit_num减少
+        answer_list = answer_content.split('^')
+        all_problems = Problem.query.filter(Problem.task_id == task_id)
+        i = 0
+        answers = []
+        for problem in all_problems:
+            answers.append(Answer(accept_id=int(open_id), problem_id=problem.id, answer=int(answer_list[i])))
+            i += 1
+        print(answers)
+        self.save_all(answers)
+        self.commit()
+
 
     def get_all_answers(self, id_or_task):
         ''' 根据问卷id或者问卷获取所有的答案  
@@ -458,3 +499,5 @@ if __name__ == "__main__":
 # 测试使用
 if app.config['ADD_RANDOM_SAMPLE']:
     test_normal_crud(db_helper)
+# test_normal_crud(db_helper)
+# test_create_student_and_organization(db_helper)
