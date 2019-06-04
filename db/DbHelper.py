@@ -20,6 +20,9 @@ class DBHelper:
     7. 根据任务id查找任务接受者
     8. 根据任务id查找任务发布者
     9. 搜索任务(根据内容/标题/tag/发布时间)
+
+    10. 报酬系统
+    11. 任务完成
     '''
 
     def __init__(self, db, drop_all=False):
@@ -331,6 +334,33 @@ class DBHelper:
             for task in tasks:
                 self.get_publisher(task)
         return tasks
+
+    def finish_task(self, openid, task_id):
+        '''完成任务  
+        Args:
+            openid: 完整者的id
+            task_id: 任务id
+        Return:
+            flag: bool 表示是否成功
+            msg: str 表示出错信息
+        '''
+        try:
+            # with self.session.begin():
+            accept = Accept.query.filter(Accept.accept_id == openid, Accept.task_id == task_id).with_for_update().one_or_none()
+            if accept is None:
+                return False, 'No such student ? No such task ? Or the student has not accepted this task!'
+            task = Task.query.filter(Task.id == task_id).with_for_update().one_or_none()
+            flag, msg = self.carry_over(task.publish_id, openid, task.reward)
+            if not flag:
+                return False, msg
+            task.accept_num = task.accept_num + 1
+            accept.finish_time = time.strftime(
+                '%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+            self.commit()
+            return True, ''
+        except Exception as e:
+            self.session.rollback()
+            return False, str(e)
 
     def charge(self, openid, money_num):
         '''充钱  
