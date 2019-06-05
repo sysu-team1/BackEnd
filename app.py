@@ -208,4 +208,4 @@ if __name__ == "__main__":
 	uploaded_photos = UploadSet('photos')
 	configure_uploads(app, uploaded_photos)
 	enter_event_and_run_scheduler()
-	app.run(debug=True)
+	app.run(debug=True, use_reloader=False)
