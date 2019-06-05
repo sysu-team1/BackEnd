@@ -1,4 +1,4 @@
-# from db import db_helper, app, model_repr
+from db import db_helper, app, model_repr
 
 publisher_id  = 'publisher_id '
 accepter_id = 'accepter_id'
@@ -23,5 +23,6 @@ def get_tasks_by_(args):
 	res = "{'error': 0, 'data': {'msg': '获取成功', 'tasks': " + tasks_str + "}}"
 	return res
 
-# def create_task_(form):
-# 	db_helper.create_task(self, publish_id, limit_time, limit_num, title, content, tag, reward, problem_content='')
+def create_task_(form):
+	pass
+	# db_helper.create_task(self, publish_id, limit_time, limit_num, title, content, tag, reward, problem_content='')
