@@ -69,8 +69,7 @@ def generate_verification_code():
 
 
 def model_repr(obj, pattern: str, orders):
-    ''' 返回制定的样式
-
+    ''' 返回制定的样式  
     参数：
         obj：从数据库中查询的结果
         pattern：模式字符串
