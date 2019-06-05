@@ -6,6 +6,7 @@ tag = 'tag'
 text = 'text'
 
 def get_tasks_by_(args):
+	global publisher_id, accepter_id, tag, text
 	if('last_id' not in args):
 		return str({'error': 1, "data": {'msg': '参数错误'}})
 	tasks = []
