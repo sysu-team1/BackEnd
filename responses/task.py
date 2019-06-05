@@ -10,8 +10,8 @@ def get_tasks_by_(args):
 	if('last_id' not in args):
 		return str({'error': 1, "data": {'msg': '参数错误'}})
 	tasks = []
-	if(published_id in args):
-		tasks = db_helper.get_publish_tasks(args.get(published_id), last_id = args.get('last_id'))
+	if(publisher_id in args):
+		tasks = db_helper.get_publish_tasks(args.get(publisher_id), last_id = args.get('last_id'))
 	elif(accepter_id in args):
 		tasks = db_helper.get_accept_tasks(args.get(accepter_id), last_id = args.get('last_id'))
 	elif(tag in args):
