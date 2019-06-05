@@ -7,6 +7,7 @@ from email.mime.base import MIMEBase
 from email.mime.application import MIMEApplication
 from email.header import Header
 import secret_key, constants, random
+from datetime import datetime
 
 
 def send_email(rcptto, username=secret_key.USERNAME, password=secret_key.PASSWORD, replyto=secret_key.REPLYTO, error=0):
@@ -81,7 +82,7 @@ def model_repr(obj, pattern: str, orders):
         attr = getattr(obj, order)
         if attr is None:
             attr = '""'
-        elif isinstance(attr, (str)):
+        elif isinstance(attr, (str, datetime)):
             attr = '"{}"'.format(attr)
         else:
             attr = str(attr)
