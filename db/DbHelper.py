@@ -27,6 +27,11 @@ class DBHelper:
     '''
 
     def __init__(self, db, drop_all=False):
+        ''' 初始化  
+        Args:
+            db: SQLAlchemy 是要被封装的对象
+            drop_all: bool 表明是否要放弃所有的表，重新创建
+        '''
         self.db = db
         self.session = db.session
         if drop_all:
@@ -40,12 +45,18 @@ class DBHelper:
         self.session.commit()
 
     def save(self, data):
-        '''保存一个数据'''
+        '''保存一个数据  
+        Args:
+            data: 必须是 Student/Organization/Task/Accept/Problem/Answer 中实例，作为被保存在数据库的对象
+        '''
         self.session.add(data)
         self.commit()
 
     def save_all(self, datas):
-        '''保存批量数据'''
+        '''保存批量数据  
+        Args:
+            datas: 必须是可遍历的对象，成员对象必须是 Student/Organization/Task/Accept/Problem/Answer 的实例，作为被保存在数据库的对象
+        '''
         for data in datas:
             self.save(data)
 
@@ -55,6 +66,8 @@ class DBHelper:
         2. 如果删除的是Student或者Organization，那么它们接受的任务和发布的任务都要删除
         3. 如果删除的是Task，需要删除关联的所有任务接受
             1. 如果是问卷，还要删除所有的Problem与对应的Answer
+        Args:
+            data: 必须是 Student/Organization/Task/Accept/Problem/Answer 中实例
         '''
         # if isinstance(data, Problem):
         #     Answer.query.filter(Answer.problem_id == data.id).delete()
@@ -74,15 +87,19 @@ class DBHelper:
         self.commit()
 
     def delete_all(self, datas):
-        '''删除批量数据'''
+        '''删除批量数据  
+        Args:
+            datas: 必须是可遍历的对象，成员对象必须是 Student/Organization/Task/Accept/Problem/Answer 的实例
+        '''
         for data in datas:
             self.delete(data)
 
     def sign_in_true(self, type, email, password):
         '''登陆验证功能
         input: 
-            type: stu org
-            email, password
+            type: str 用户类型，可选值为'stu'和'org'
+            email: str
+            password: str
         output: error_code, error_message, openid
             error_code为1表示出错
             error_message:
@@ -98,7 +115,7 @@ class DBHelper:
         #         return 1, 'password not right', ''
         # elif type == 'org':
         #     org = Organization.query.filter(Organization.email == email).one_or_none()
-        #     if org is not None:  
+        #     if org is not None:
         #         if org.password == password:
         #             return 0, '', org.openid
         #         return 1, 'password not right', ''
@@ -116,8 +133,6 @@ class DBHelper:
         '''验证邮箱是否已被注册
             如果未注册，则插入数据库并反馈信息
             如果注册，则反馈失败信息
-
-
             暂时没有使用的字段
             tag: '与任务相关的标签'
             signature: '用户签名'
@@ -179,8 +194,12 @@ class DBHelper:
         self.commit()
         return 0, task
 
-    def query_student(self, openid, get_all=False):
-        ''' 根据openid查找student，get_publish指定是否获取该student发布的任务与接受的任务 '''
+    def query_student(self, openid: int, get_all: bool=False):
+        '''根据openid查找student，get_publish指定是否获取该student发布的任务与接受的任务  
+        Args:
+            openid: int
+            get_all: bool 表示是否同时获取该学生"发布"和"接受"的任务
+        '''
         if get_all:
             stu = Student.query.options(db.joinedload(Student.accepts)).filter(
                 Student.openid == openid).one_or_none()
@@ -190,25 +209,34 @@ class DBHelper:
             stu = Student.query.filter(Student.openid == openid).one_or_none()
         return stu
 
-    def query_oraganization(self, openid, get_all=False):
-        '''根据openid查找oraganization，get_all指定是否同时获取该organization发布的任务'''
+    def query_oraganization(self, openid: int, get_all: bool=False):
+        '''根据openid查找oraganization，get_all指定是否同时获取该organization发布的任务  
+        Args:
+            openid: int
+            get_all: bool 表示是否同时获取该组织"发布"的任务
+        '''
         org = self.session.query(Organization).filter(
             Organization.openid == openid).one_or_none()
         if get_all:
             org.tasks = self.get_publish_tasks(org.openid)
         return org
 
-    def has_accept(self, accept_id, task_id):
-        '''根据accept_id与task.id查询是否已经接受该任务了'''
+    def has_accept(self, accept_id: int, task_id: int):
+        '''根据accept_id与task.id查询是否已经接受该任务了
+        Args:
+            accept_id: int
+            task_id: int
+        '''
         return Accept.query.filter(Accept.accept_id == accept_id, Accept.task_id == task_id).one_or_none() is not None
 
-    def get_publish_tasks(self, openid, sort=True, last_id=-1, start=0, length=update_add_num):
+    def get_publish_tasks(self, openid: int, sort: bool=True, last_id: int=-1, start: int=0, length: int=update_add_num):
         '''根据openid查找发布的任务  
         Args:
-            openid:
-            start: 开始获取任务的位置
-            length: 获取任务的数量
-            sort: 表示是否安装publish_time排序
+            openid: int
+            start: int 开始获取任务的位置
+            length: int 获取任务的数量
+            sort: bool 表示是否安装publish_time排序
+            last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
         '''
         query = Task.query.filter(Task.publish_id == openid)
         if last_id != -1:
@@ -217,13 +245,14 @@ class DBHelper:
             query = query.order_by(Task.id.desc())
         return query.offset(start).limit(length).all()
 
-    def get_accept_tasks(self, openid, sort=True, last_id=-1, start=0, length=update_add_num):
+    def get_accept_tasks(self, openid: int, sort: bool=True, last_id: int=-1, start: int=0, length: int=update_add_num):
         '''根据openid查找接受的任务  
         Args:
-            openid:
-            start: 开始获取任务的位置
-            length: 获取任务的数量
-            sort: 表示是否安装accept_time排序
+            openid: int
+            start: int 开始获取任务的位置
+            length: int 获取任务的数量
+            sort: bool 表示是否安装accept_time排序
+            last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
         '''
         query = self.session.query(Task).join(Accept).filter(
             Accept.accept_id == openid).filter(Accept.task_id == Task.id)
@@ -233,12 +262,12 @@ class DBHelper:
             query = query.order_by(Accept.accept_time.desc())
         return query.offset(start).limit(length).all()
 
-    def get_recipient(self, id_or_task, start=0, length=update_add_num):
+    def get_recipient(self, id_or_task, start: int=0, length: int=update_add_num):
         '''根据task_id或者task查找接受任务者  
         Args:
-            task_id:
-            start: 获取接受者的开始位置
-            length: 获取接受者的长度
+            id_or_task: int/Task 任务的id或者该任务
+            start: int 获取接受者的开始位置
+            length: int 获取接受者的长度
         Tips:
             可以直接通过 **task.accepts** 获取接受，然后通过 **accept.student** 来获取接受者，但不按照时间排序
         '''
@@ -252,7 +281,10 @@ class DBHelper:
         return [accept.student for accept in accepts]
 
     def get_publisher(self, id_or_task):
-        '''根据task_id或者task找到任务发布者'''
+        '''根据task_id或者task找到任务发布者  
+        Args:
+            id_or_task: int/Task 任务的id或者该任务
+        '''
         if isinstance(id_or_task, int):
             task = self.session.query(
                 Task).filter(Task.id == id_or_task).one()
@@ -266,10 +298,10 @@ class DBHelper:
             task.publisher = Student.query.filter(Student.openid == task.publish_id).one()
         return task.publisher
 
-
-    def get_all_problems(self, task_id):
-        '''
-        根据task_id获取对应的所有问题
+    def get_all_problems(self, task_id: int):
+        '''根据task_id获取对应的所有问题
+        Args:
+            task_id: int
         '''
         all_problems = Problem.query.filter(Problem.task_id == task_id)
         problem_content = ''
@@ -281,8 +313,7 @@ class DBHelper:
         print(problem_content)
         return problem_content
 
-
-    def post_answer(self, task_id, answer_content, open_id):
+    def post_answer(self, task_id: int, answer_content: str, open_id: int):
         '''
         提交问卷答案
         '''
@@ -298,9 +329,10 @@ class DBHelper:
         self.save_all(answers)
         self.commit()
 
-
     def get_all_answers(self, id_or_task):
         ''' 根据问卷id或者问卷获取所有的答案  
+        Args:
+            id_or_task: int/Task
         Return:
             [problem1.answers, problem2.answers, ...]
         Tips:
@@ -317,54 +349,54 @@ class DBHelper:
             all_answers.append(problem.answers)
         return all_answers
 
-    def get_task(self, sort=True, last_id=-1, get_publisher=True, start=0, length=update_add_num):
+    def get_task(self, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num):
         '''搜索Task  
         参数:
-            sort: 表示是否按照时间排序
-            get_publisher: 表示是否获取任务发布者
-            last_id: 表示上次刷新时最后返回的任务的id
-            start: 表示获取任务的开始位置
-            length: 表示获取任务的数量
+            sort: bool 表示是否按照时间排序
+            get_publisher: bool 表示是否获取任务发布者
+            last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
+            start: int 表示获取任务的开始位置
+            length: int 表示获取任务的数量
         '''
         query = Task.query
         return self._get_task(query, sort, last_id, get_publisher, start, length)
 
-    def get_task_by_text(self, search_text, sort=True, last_id=-1, get_publisher=True, start=0, length=update_add_num):
+    def get_task_by_text(self, search_text: str, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num):
         '''根据内容和标题搜索Task  
         参数:
-            search_text: 表示用于搜索的文本
-            sort: 表示是否按照时间排序
-            last_id: 表示上次刷新时最后返回的任务的id
-            get_publisher: 表示是否获取任务发布者
-            start: 表示获取任务的开始位置
-            length: 表示获取任务的数量
+            search_text: str 表示用于搜索的文本
+            sort: bool 表示是否按照时间排序
+            last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
+            get_publisher: bool 表示是否获取任务发布者
+            start: int 表示获取任务的开始位置
+            length: int 表示获取任务的数量
         '''
         query = Task.query.filter(self.db.text(
             "match (title, content) against (:text)")).params(text=search_text)
         return self._get_task(query, sort, last_id, get_publisher, start, length)
 
-    def get_task_by_tag(self, search_tag, sort=True, last_id=-1, get_publisher=True, start=0, length=update_add_num):
+    def get_task_by_tag(self, search_tag: str, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num):
         '''根据tag搜索Task  
         参数:
-            search_tag: 表示用于搜索的tag
-            sort: 表示是否按照时间排序
-            last_id: 表示上次刷新时最后返回的任务的id
-            get_publisher: 表示是否获取任务发布者
-            start: 表示获取任务的开始位置
-            length: 表示获取任务的数量
+            search_tag: str 表示用于搜索的tag
+            sort: bool 表示是否按照时间排序
+            last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
+            get_publisher: bool 表示是否获取任务发布者
+            start: int 表示获取任务的开始位置
+            length: int 表示获取任务的数量
         '''
         query = Task.query.filter(Task.tag.match(search_tag))
         return self._get_task(query, sort, last_id, get_publisher, start, length)
 
-    def _get_task(self, query, sort=True, last_id=-1, get_publisher=True, start=0, length=update_add_num):
+    def _get_task(self, query, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num):
         '''搜索Task  
         参数:
-            query: 用于查询任务
-            sort: 表示是否按照时间排序
-            get_publisher: 表示是否获取任务发布者
-            last_id: 表示上次刷新时最后返回的任务的id
-            start: 表示获取任务的开始位置
-            length: 表示获取任务的数量
+            query: Task.query 用于查询任务的query
+            sort: bool 表示是否按照时间排序
+            get_publisher: bool 表示是否获取任务发布者
+            last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
+            start: int 表示获取任务的开始位置
+            length: int 表示获取任务的数量
         '''
         if last_id != -1:
             query = query.filter(Task.id < last_id)
@@ -376,11 +408,11 @@ class DBHelper:
                 self.get_publisher(task)
         return tasks
 
-    def finish_task(self, openid, task_id):
+    def finish_task(self, openid: int, task_id: int):
         '''完成任务  
         Args:
-            openid: 完整者的id
-            task_id: 任务id
+            openid: int 完整者的id
+            task_id: int 任务id
         Return:
             flag: bool 表示是否成功
             msg: str 表示出错信息
@@ -403,11 +435,11 @@ class DBHelper:
             self.session.rollback()
             return False, str(e)
 
-    def charge(self, openid, money_num):
+    def charge(self, openid: int, money_num: int):
         '''充钱  
         Args:
-            openid: 学生或者组织的id
-            money_num: 充的钱的数量
+            openid: int 学生或者组织的id
+            money_num: int 充的钱的数量
         Return:
             flag: bool 表示是否成功
             msg: str 失败的原因，如果成功则为空
@@ -429,12 +461,12 @@ class DBHelper:
         # self.rollback()
         # return False
 
-    def carry_over(self, source_id, target_id, money_num):
+    def carry_over(self, source_id: int, target_id: int, money_num: int):
         '''转账，从source_id处转到target_id处，转移money_num个币  
         Args:
-            source_id: 币来源
-            target_id: 币去处
-            money_num: 币数量
+            source_id: int 币来源
+            target_id: int 币去处
+            money_num: int 币数量
         Return:
             flag: bool 表示是否成功
             msg: str 失败的原因，如果成功则为空
@@ -455,11 +487,11 @@ class DBHelper:
             self.rollback()
             return False, str(e)
 
-    def cash_in(self, openid, money_num):
+    def cash_in(self, openid: int, money_num: int):
         '''套现  
         Args:
-            openid: 学生或者组织的id
-            money_num: 套现的钱的数量
+            openid: int 学生或者组织的id
+            money_num: int 套现的钱的数量
         '''
         raise NotImplementedError('暂不支持套现')
 
