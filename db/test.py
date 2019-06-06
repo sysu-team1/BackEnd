@@ -1,7 +1,3 @@
-import datetime
-import random
-import time
-
 from config import make_pattern
 
 from .Accept import Accept, random_accepts
@@ -14,6 +10,8 @@ from .Task import Task, random_tasks
 
 
 def test_json():
+    import time
+    import datetime
     print(Student(openid=1000000, email='email1', password='password1'))
     print(Organization(openid=2, email='email2', password='password2'))
     print(Task(id=1, publish_id=2, publish_time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), limit_num=10,
@@ -26,6 +24,7 @@ def test_json():
 
 
 def test_normal_crud(db_helper):
+    import random
     stus = random_stus(100)
     db_helper.save_all(stus)
     db_helper.commit()

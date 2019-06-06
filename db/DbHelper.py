@@ -6,7 +6,7 @@ from .Student import Student
 from .Task import Task
 from .Problem import Problem
 from .Answer import Answer
-import time
+from datetime import datetime
 
 update_add_num = app.config['UPDATE_ADD_NUM']
 
@@ -176,8 +176,8 @@ class DBHelper:
         ) if publish_id >= 100000 else Organization.query.filter(Organization.openid == publish_id).one_or_none()
         if int(target.cash) < int(limit_num) * int(reward):
             return 1, -1
-        task = Task(publish_id=publish_id, publish_time=time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 
-                        limit_time=limit_time, limit_num=limit_num, title=title, content=content, tag=tag, reward=reward)
+        task = Task(publish_id=publish_id, publish_time=datetime.now(), limit_time=limit_time,
+                    limit_num=limit_num, title=title, content=content, tag=tag, reward=reward)
         self.save(task)
         if tag == '问卷':
             # 使用^作为problem的切分，使用$作为题目与答案的切分，使用#作为答案的切分
@@ -349,19 +349,21 @@ class DBHelper:
             all_answers.append(problem.answers)
         return all_answers
 
-    def get_task(self, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num):
+    def get_task(self, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num, screen_time: bool=True, screen_num: bool=True):
         '''搜索Task  
         参数:
             sort: bool 表示是否按照时间排序
-            get_publisher: bool 表示是否获取任务发布者
             last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
+            get_publisher: bool 表示是否获取任务发布者
             start: int 表示获取任务的开始位置
             length: int 表示获取任务的数量
+            screen_time: bool 表示是否过滤掉时间过期了的任务
+            screen_num: bool 表示是否过滤掉完成数量上满足了的任务
         '''
         query = Task.query
-        return self._get_task(query, sort, last_id, get_publisher, start, length)
+        return self._get_task(query, sort, last_id, get_publisher, start, length, screen_time, screen_num)
 
-    def get_task_by_text(self, search_text: str, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num):
+    def get_task_by_text(self, search_text: str, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num, screen_time: bool=True, screen_num: bool=True):
         '''根据内容和标题搜索Task  
         参数:
             search_text: str 表示用于搜索的文本
@@ -370,12 +372,14 @@ class DBHelper:
             get_publisher: bool 表示是否获取任务发布者
             start: int 表示获取任务的开始位置
             length: int 表示获取任务的数量
+            screen_time: bool 表示是否过滤掉时间过期了的任务
+            screen_num: bool 表示是否过滤掉完成数量上满足了的任务
         '''
         query = Task.query.filter(self.db.text(
             "match (title, content) against (:text)")).params(text=search_text)
-        return self._get_task(query, sort, last_id, get_publisher, start, length)
+        return self._get_task(query, sort, last_id, get_publisher, start, length, screen_time, screen_num)
 
-    def get_task_by_tag(self, search_tag: str, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num):
+    def get_task_by_tag(self, search_tag: str, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num, screen_time: bool=True, screen_num: bool=True):
         '''根据tag搜索Task  
         参数:
             search_tag: str 表示用于搜索的tag
@@ -384,22 +388,31 @@ class DBHelper:
             get_publisher: bool 表示是否获取任务发布者
             start: int 表示获取任务的开始位置
             length: int 表示获取任务的数量
+            screen_time: bool 表示是否过滤掉时间过期了的任务
+            screen_num: bool 表示是否过滤掉完成数量上满足了的任务
         '''
         query = Task.query.filter(Task.tag.match(search_tag))
-        return self._get_task(query, sort, last_id, get_publisher, start, length)
+        return self._get_task(query, sort, last_id, get_publisher, start, length, screen_time, screen_num)
 
-    def _get_task(self, query, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num):
+    def _get_task(self, query, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num, screen_time: bool=True, screen_num: bool=True):
         '''搜索Task  
         参数:
             query: Task.query 用于查询任务的query
             sort: bool 表示是否按照时间排序
-            get_publisher: bool 表示是否获取任务发布者
             last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
+            get_publisher: bool 表示是否获取任务发布者
             start: int 表示获取任务的开始位置
             length: int 表示获取任务的数量
+            screen_time: bool 表示是否过滤掉时间过期了的任务
+            screen_num: bool 表示是否过滤掉完成数量上满足了的任务
         '''
         if last_id != -1:
             query = query.filter(Task.id < last_id)
+        if screen_time:
+            now = datetime.now()
+            query = query.filter(Task.limit_time > now)
+        if screen_num:
+            query = query.filter(Task.limit_num > Task.accept_num)
         if sort:
             query = query.order_by(Task.id.desc())
         tasks = query.offset(start).limit(length).all()
@@ -427,8 +440,8 @@ class DBHelper:
             if not flag:
                 return False, msg
             task.accept_num = task.accept_num + 1
-            accept.finish_time = time.strftime(
-                '%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+            accept.finish_time = datetime.now()
+            # time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) 这个太浪费时间了，要调用三个方法
             self.commit()
             return True, ''
         except Exception as e:
