@@ -1,7 +1,7 @@
 from .test import test_json, test_normal_crud, test_time, test_create_student_and_organization
 from .Accept import Accept
 from .Organization import Organization
-from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db
+from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db, DEFAULT_TIME
 from .Student import Student
 from .Task import Task
 from .Problem import Problem
@@ -429,6 +429,10 @@ class DBHelper:
             for task in tasks:
                 self.get_publisher(task)
         return tasks
+
+    def accept_task(self, accept_id, task_id):
+        task = Task.query.filter(Task.id == task_id)
+        self.save(Accept(tag=task.tag, accept_id=accept_id, task_id=task.id, accept_time=datetime.now(), finish_time=DEFAULT_TIME))
 
     def finish_task(self, openid: int, task_id: int):
         '''完成任务  
