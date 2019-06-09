@@ -9,7 +9,7 @@ from tools import utils
 from flask import Flask, request, json, url_for, Response
 # from responses.manage_users import register_, get_verification_code_, enter_event_and_run_scheduler
 # from responses.get_tasks import get_tasks_by_
-from responses import register_, get_verification_code_, enter_event_and_run_scheduler, get_tasks_by_, create_task_
+from responses import register_, get_verification_code_, enter_event_and_run_scheduler, get_tasks_by_, create_task_, accept_task_
 from flask_uploads import UploadSet, configure_uploads, IMAGES, patch_request_class
 from tools.utils import generate_verification_code
 
@@ -103,6 +103,11 @@ def create_task():
 		except Exception as e:
 			print('upload file exception: %s' % e)
 			return str({'error': 1, "data": {'msg': '图片上传失败'}})
+
+
+@app.route('/tasks/accept/', methods=['POST'])
+def accept_task():
+	return accept_task_(request.form)
 
 
 @app.route('/tasks/upload_photo/<task_id>', methods=['POST', 'GET'])
