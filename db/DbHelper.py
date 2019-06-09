@@ -349,6 +349,15 @@ class DBHelper:
             all_answers.append(problem.answers)
         return all_answers
 
+    def get_task_by_id(self, task_id):
+        ''' 根据任务id返回任务
+        Args:
+            task_id: int 任务id
+        Return:
+            task: Task 任务
+        '''
+        return Task.query.filter(Task.id == task_id).one_or_none()
+
     def get_task(self, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num, screen_time: bool=True, screen_num: bool=True):
         '''搜索Task  
         参数:
