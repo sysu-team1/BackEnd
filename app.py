@@ -177,8 +177,18 @@ def add_cash(open_id):
 def get_self_information(open_id):
 	# 获取用户个人信息
 	# TODO 还没有写完
-	print(db_helper.query_student(open_id))
-	return 'hhh'
+	id = int(open_id)
+	if id < 1000000:
+		org = db_helper.query_oraganization(id)
+		orders = ['email', 'name', 'cash']
+		patterns = make_pattern(len(orders))
+		info = model_repr(org, patterns, orders)
+	else:
+		stu = db_helper.query_student(id)
+		orders = ['email', 'student_id', 'name', 'sex', 'collage', 'grade', 'edu_bg', 'cash']
+		patterns = make_pattern(len(orders))
+		info = model_repr(stu, patterns, orders)
+	return info
 
 
 @app.route("/get_problem/<task_id>", methods=['GET'])
