@@ -1,7 +1,7 @@
-from .test import test_json, test_normal_crud, test_time, test_create_student_and_organization
+from .test import test_json, test_normal_crud, test_time, test_create_student_and_organization, test_accetp_and_publish
 from .Accept import Accept
 from .Organization import Organization
-from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db
+from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db, DEFAULT_TIME
 from .Student import Student
 from .Task import Task
 from .Problem import Problem
@@ -9,6 +9,7 @@ from .Answer import Answer
 from datetime import datetime
 
 update_add_num = app.config['UPDATE_ADD_NUM']
+default_datetime = datetime.strptime(DEFAULT_TIME, "%Y-%m-%d %H:%M:%S")
 
 class DBHelper:
     '''
@@ -229,8 +230,8 @@ class DBHelper:
         '''
         return Accept.query.filter(Accept.accept_id == accept_id, Accept.task_id == task_id).one_or_none() is not None
 
-    def get_publish_tasks(self, openid: int, sort: bool=True, last_id: int=-1, start: int=0, length: int=update_add_num):
-        '''根据openid查找发布的任务  
+    def get_all_publish_tasks(self, openid: int, sort: bool=True, last_id: int=-1, start: int=0, length: int=update_add_num):
+        '''根据openid查找所有发布的任务  
         Args:
             openid: int
             start: int 开始获取任务的位置
@@ -239,28 +240,142 @@ class DBHelper:
             last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
         '''
         query = Task.query.filter(Task.publish_id == openid)
+        return self._get_publish_tasks(query, sort, last_id, start, length)
+
+    def get_ongoing_publish_tasks(self, openid: int, sort: bool = True, last_id: int = -1, start: int = 0, length: int = update_add_num):
+        '''根据openid查找进行中的发布的任务  
+        Args:
+            openid: int
+            start: int 开始获取任务的位置
+            length: int 获取任务的数量
+            sort: bool 表示是否安装publish_time排序
+            last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
+        '''
+        now = datetime.now()
+        query = Task.query.filter(Task.publish_id == openid, Task.limit_time > now)
+        return self._get_publish_tasks(query, sort, last_id, start, length)
+
+    def get_finished_publish_tasks(self, openid: int, sort: bool=True, last_id: int=-1, start: int=0, length: int=update_add_num):
+        '''根据openid查找已完成的发布的任务  
+        Args:
+            openid: int
+            start: int 开始获取任务的位置
+            length: int 获取任务的数量
+            sort: bool 表示是否安装publish_time排序
+            last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
+        '''
+        now = datetime.now()
+        query = Task.query.filter(Task.publish_id == openid, Task.limit_time <= now)
+        return self._get_publish_tasks(query, sort, last_id, start, length)
+
+    def _get_publish_tasks(self, query, sort: bool=True, last_id: int=-1, start: int=0, length: int=update_add_num):
+        '''查找发布的任务  
+        Args:
+            query: 用于查找任务的query
+            start: int 开始获取任务的位置
+            length: int 获取任务的数量
+            sort: bool 表示是否安装publish_time排序
+            last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
+        '''
         if last_id != -1:
             query = query.filter(Task.id < last_id)
         if sort:
             query = query.order_by(Task.id.desc())
         return query.offset(start).limit(length).all()
 
-    def get_accept_tasks(self, openid: int, sort: bool=True, last_id: int=-1, start: int=0, length: int=update_add_num):
-        '''根据openid查找接受的任务  
+    def get_all_accept_tasks(self, openid: int, sort: bool=True, last_accept_time: datetime=None, start: int=0, length: int=update_add_num):
+        '''根据openid查找所有接受的任务  
         Args:
             openid: int
-            start: int 开始获取任务的位置
+            start: int 开始获取任务的位置 @deperated
             length: int 获取任务的数量
             sort: bool 表示是否安装accept_time排序
-            last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
+            last_accept_time: datetime 表示上次获取的任务列表的最后的一个item的accept_time，以此作为后续数据请求的"标识"
+        Return:
+            tasks: 任务列表
+            last_accept_time: 最后一个item的accept_time，注意如果tasks为空，则last_accept_time是传入的last_accept_time
         '''
         query = self.session.query(Task).join(Accept).filter(
-            Accept.accept_id == openid).filter(Accept.task_id == Task.id)
-        if last_id != -1:
-            query = query.filter(Task.id < last_id)
+            Accept.accept_id == openid, Accept.task_id == Task.id)
+        return self._get_accept_tasks(query, openid, sort, last_accept_time, start, length)
+
+    def get_ongoing_accept_tasks(self, openid: int, sort: bool = True, last_accept_time: datetime=None, start: int = 0, length: int = update_add_num):
+        '''根据openid查找进行中的接受了的任务  
+        Args:
+            openid: int
+            start: int 开始获取任务的位置 @deperated
+            length: int 获取任务的数量
+            sort: bool 表示是否安装accept_time排序
+            last_accept_time: datetime 表示上次获取的任务列表的最后的一个item的accept_time，以此作为后续数据请求的"标识"
+        Return:
+            tasks: 任务列表
+            last_accept_time: 最后一个item的accept_time，注意如果tasks为空，则last_accept_time是传入的last_accept_time
+        '''
+        now = datetime.now()
+        query = self.session.query(Task).join(Accept).filter(
+            Accept.accept_id == openid, Accept.task_id == Task.id,
+            Accept.finish_time == default_datetime, Task.limit_time > now)
+        return self._get_accept_tasks(query, openid, sort, last_accept_time, start, length)
+
+    def get_finished_accept_tasks(self, openid: int, sort: bool = True, last_accept_time: datetime = None, start: int = 0, length: int = update_add_num):
+        '''根据openid查找已完成的接受了的任务  
+        Args:
+            openid: int
+            start: int 开始获取任务的位置 @deperated
+            length: int 获取任务的数量
+            sort: bool 表示是否安装accept_time排序
+            last_accept_time: datetime 表示上次获取的任务列表的最后的一个item的accept_time，以此作为后续数据请求的"标识"
+        Return:
+            tasks: 任务列表
+            last_accept_time: 最后一个item的accept_time，注意如果tasks为空，则last_accept_time是传入的last_accept_time
+        '''
+        query = self.session.query(Task).join(Accept).filter(
+            Accept.accept_id == openid, Accept.task_id == Task.id,
+            Accept.finish_time != default_datetime, Accept.finish_time < Task.limit_time)
+        return self._get_accept_tasks(query, openid, sort, last_accept_time, start, length)
+
+    def get_complete_accept_tasks(self, openid: int, sort: bool = True, last_accept_time: datetime=None, start: int = 0, length: int = update_add_num):
+        '''根据openid查找结束了的接受了的任务  
+        Args:
+            openid: int
+            start: int 开始获取任务的位置 @deperated
+            length: int 获取任务的数量
+            sort: bool 表示是否安装accept_time排序
+            last_accept_time: datetime 表示上次获取的任务列表的最后的一个item的accept_time，以此作为后续数据请求的"标识"
+        Return:
+            tasks: 任务列表
+            last_accept_time: 最后一个item的accept_time，注意如果tasks为空，则last_accept_time是传入的last_accept_time
+        '''
+        now = datetime.now()
+        query = self.session.query(Task).join(Accept).filter(
+            Accept.accept_id == openid, Accept.task_id == Task.id,
+            Accept.finish_time == default_datetime, Task.limit_time <= now)
+        return self._get_accept_tasks(query, openid, sort, last_accept_time, start, length)
+
+    def _get_accept_tasks(self, query, openid: int, sort: bool = True, last_accept_time: datetime=None, start: int = 0, length: int = update_add_num):
+        '''查找接受的任务  
+        Args:
+            query: 查找任务的query
+            openid: int
+            start: int 开始获取任务的位置 @deperated
+            length: int 获取任务的数量
+            sort: bool 表示是否安装accept_time排序
+            last_accept_time: datetime 表示上次获取的任务列表的最后的一个item的accept_time，以此作为后续数据请求的"标识"
+        Return:
+            tasks: 任务列表
+            last_accept_time: 最后一个item的accept_time，注意如果tasks为空，则last_accept_time是传入的last_accept_time
+        '''
+        if last_accept_time is not None:
+            query = query.filter(Accept.accept_time < last_accept_time)
         if sort:
             query = query.order_by(Accept.accept_time.desc())
-        return query.offset(start).limit(length).all()
+        tasks = query.offset(start).limit(length).all()
+        if tasks is not None and len(tasks) > 0:
+            accept = Accept.query.filter(
+                Accept.accept_id == openid, Accept.task_id == tasks[-1].id).one_or_none()
+            if accept is not None:
+                last_accept_time = accept.accept_time
+        return tasks, last_accept_time
 
     def get_recipient(self, id_or_task, start: int=0, length: int=update_add_num):
         '''根据task_id或者task查找接受任务者  
@@ -546,3 +661,4 @@ if app.config['ADD_RANDOM_SAMPLE']:
     test_normal_crud(db_helper)
 # test_normal_crud(db_helper)
 # test_create_student_and_organization(db_helper)
+test_accetp_and_publish(db_helper, update_add_num)

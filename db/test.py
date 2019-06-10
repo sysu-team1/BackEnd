@@ -169,26 +169,79 @@ def test_time(db_helper, update_add_num):
     else:
         print('not enough tasks')
 
-    update_add_num = 4
-    print('---------- 加载组织6发布的最新4条任务')
-    orders = ['id', 'publish_time']
+    test_publish_task(db_helper.get_all_publish_tasks, 4, 6,
+              '加载组织6发布的最新4条任务', '加载组织6发布的后4条任务')
+
+
+def test_accetp_and_publish(db_helper, update_add_num):
+    openid = 1
+    update_add_num = 5
+    test_publish_task(db_helper.get_all_publish_tasks, openid, update_add_num,
+                     '加载组织{}发布的所有的最新{}条任务'.format(openid, update_add_num),
+                     '加载组织{}发布的所有的后{}条任务'.format(openid, update_add_num))
+    test_publish_task(db_helper.get_ongoing_publish_tasks, openid, update_add_num,
+                     '加载组织{}发布的进行中的最新{}条任务'.format(openid, update_add_num),
+                     '加载组织{}发布的进行中的后{}条任务'.format(openid, update_add_num))
+    test_publish_task(db_helper.get_finished_publish_tasks, openid, update_add_num,
+              '加载组织{}发布的已完成的最新{}条任务'.format(openid, update_add_num),
+              '加载组织{}发布的已完成的后{}条任务'.format(openid, update_add_num))
+
+    openid = 1000028
+    update_add_num = 5
+    test_accept_task(db_helper.get_all_accept_tasks, openid, update_add_num,
+                     '加载学生{}接受的所有的最新{}条任务'.format(openid, update_add_num),
+                     '加载学生{}接受的所有的后{}条任务'.format(openid, update_add_num))
+    test_accept_task(db_helper.get_ongoing_accept_tasks, openid, update_add_num,
+                     '加载学生{}接受的进行中的最新{}条任务'.format(openid, update_add_num),
+                     '加载学生{}接受的进行中的后{}条任务'.format(openid, update_add_num))
+    test_accept_task(db_helper.get_complete_accept_tasks, openid, update_add_num,
+                     '加载学生{}接受的结束了的最新{}条任务'.format(openid, update_add_num),
+                     '加载学生{}接受的结束了的后{}条任务'.format(openid, update_add_num))
+    test_accept_task(db_helper.get_finished_accept_tasks, openid, update_add_num,
+                     '加载学生{}接受的已完成的最新{}条任务'.format(openid, update_add_num),
+                     '加载学生{}接受的已完成的后{}条任务'.format(openid, update_add_num))
+
+
+def test_publish_task(method, openid, update_add_num, message1, message2):
+    print('----------', message1)
+    orders = ['id', 'publish_time', 'limit_time']
     patterns = make_pattern(len(orders))
-    tasks = db_helper.get_publish_tasks(openid=6, length=update_add_num)
+    tasks = method(openid=openid, length=update_add_num)
     for task in tasks:
         print(model_repr(task, patterns, orders))
     num_tasks = len(tasks)
     if num_tasks == update_add_num:
         last_id = tasks[-1].id
-        print('---------- 加载组织6发布的后4条任务')
-        tasks = db_helper.get_publish_tasks(
-            openid=6, last_id=last_id, length=update_add_num)
+        print('----------', message2)
+        tasks = method(openid=openid, last_id=last_id, length=update_add_num)
         for task in tasks:
             print(model_repr(task, patterns, orders))
     elif num_tasks > update_add_num:
-        print('什么鬼！！！ something wrong happen')
+        print('---------- 什么鬼！！！ something wrong happen')
         return
     else:
-        print('not enough tasks')
+        print('---------- not enough tasks')
+
+
+def test_accept_task(method, openid, update_add_num, message1, message2):
+    print('----------', message1)
+    orders = ['id', 'publish_time', 'limit_time']
+    patterns = make_pattern(len(orders))
+    tasks, last_accept_time = method(openid=openid, length=update_add_num)
+    for task in tasks:
+        print(model_repr(task, patterns, orders))
+    num_tasks = len(tasks)
+    if num_tasks == update_add_num:
+        print('----------', message2)
+        tasks, last_accept_time = method(
+            openid=openid, last_accept_time=last_accept_time, length=update_add_num)
+        for task in tasks:
+            print(model_repr(task, patterns, orders))
+    elif num_tasks > update_add_num:
+        print('---------- 什么鬼！！！ something wrong happen')
+        return
+    else:
+        print('---------- not enough tasks')
 
 
 def test_create_student_and_organization(db_helper):

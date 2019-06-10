@@ -100,7 +100,7 @@ def random_tasks(num, orgs, stus, db_helper):
             all_tags.pop(index)
         tag = ','.join(tag)
         publish_time = db.func.now()
-        limit_time = DEFAULT_TIME if random.random() < 0.5 else db.func.date_add(
+        limit_time = DEFAULT_TIME if random.random() < 0.2 else db.func.date_add(
             publish_time, db.text('interval {} hour'.format(random.randint(10, 120))))
         task = Task(publish_id=publish_id, publish_time=publish_time, limit_time=limit_time,
                     limit_num=random.randint(10, 50), title=title, content=content, tag=tag)
