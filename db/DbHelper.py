@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 from .test import test_json, test_normal_crud, test_time, test_create_student_and_organization, test_accetp_and_publish
+=======
+
+from .test import test_json, test_normal_crud, test_time, test_create_student_and_organization
+>>>>>>> 31d46760eefea817bfa43ec206aa257da495f0d2
 from .Accept import Accept
 from .Organization import Organization
 from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db, DEFAULT_TIME
@@ -464,9 +469,18 @@ class DBHelper:
             all_answers.append(problem.answers)
         return all_answers
 
-    def get_task(self, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num, screen_time: bool=True, screen_num: bool=True):
+    def get_task_by_id(self, task_id):
+        ''' 根据任务id返回任务
+        Args:
+            task_id: int 任务id
+        Return:
+            task: Task 任务
+        '''
+        return Task.query.filter(Task.id == task_id).one_or_none()
+
+    def get_task(self, accept_id: int=-1, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num, screen_time: bool=True, screen_num: bool=True):
         '''搜索Task  
-        参数:
+        Args:
             sort: bool 表示是否按照时间排序
             last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
             get_publisher: bool 表示是否获取任务发布者
@@ -474,13 +488,15 @@ class DBHelper:
             length: int 表示获取任务的数量
             screen_time: bool 表示是否过滤掉时间过期了的任务
             screen_num: bool 表示是否过滤掉完成数量上满足了的任务
+        Return:
+            task_list: [Task] 任务列表
         '''
         query = Task.query
-        return self._get_task(query, sort, last_id, get_publisher, start, length, screen_time, screen_num)
+        return self._get_task(query, accept_id, sort, last_id, get_publisher, start, length, screen_time, screen_num)
 
-    def get_task_by_text(self, search_text: str, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num, screen_time: bool=True, screen_num: bool=True):
+    def get_task_by_text(self, search_text: str, accept_id: int=-1, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num, screen_time: bool=True, screen_num: bool=True):
         '''根据内容和标题搜索Task  
-        参数:
+        Args:
             search_text: str 表示用于搜索的文本
             sort: bool 表示是否按照时间排序
             last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
@@ -489,14 +505,16 @@ class DBHelper:
             length: int 表示获取任务的数量
             screen_time: bool 表示是否过滤掉时间过期了的任务
             screen_num: bool 表示是否过滤掉完成数量上满足了的任务
+        Return:
+            task_list: [Task] 任务列表
         '''
         query = Task.query.filter(self.db.text(
             "match (title, content) against (:text)")).params(text=search_text)
-        return self._get_task(query, sort, last_id, get_publisher, start, length, screen_time, screen_num)
+        return self._get_task(query, accept_id, sort, last_id, get_publisher, start, length, screen_time, screen_num)
 
-    def get_task_by_tag(self, search_tag: str, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num, screen_time: bool=True, screen_num: bool=True):
+    def get_task_by_tag(self, search_tag: str, accept_id: int=-1, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num, screen_time: bool=True, screen_num: bool=True):
         '''根据tag搜索Task  
-        参数:
+        Args:
             search_tag: str 表示用于搜索的tag
             sort: bool 表示是否按照时间排序
             last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
@@ -505,13 +523,15 @@ class DBHelper:
             length: int 表示获取任务的数量
             screen_time: bool 表示是否过滤掉时间过期了的任务
             screen_num: bool 表示是否过滤掉完成数量上满足了的任务
+        Return:
+            task_list: [Task] 任务列表
         '''
         query = Task.query.filter(Task.tag.match(search_tag))
-        return self._get_task(query, sort, last_id, get_publisher, start, length, screen_time, screen_num)
+        return self._get_task(query, accept_id, sort, last_id, get_publisher, start, length, screen_time, screen_num)
 
-    def _get_task(self, query, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num, screen_time: bool=True, screen_num: bool=True):
+    def _get_task(self, query, accept_id: int=-1, sort: bool=True, last_id: int=-1, get_publisher: bool=True, start: int=0, length: int=update_add_num, screen_time: bool=True, screen_num: bool=True):
         '''搜索Task  
-        参数:
+        Args:
             query: Task.query 用于查询任务的query
             sort: bool 表示是否按照时间排序
             last_id: int 表示上次获取的任务列表的最后的一个item的id，以此作为后续数据请求的"标识"
@@ -520,9 +540,14 @@ class DBHelper:
             length: int 表示获取任务的数量
             screen_time: bool 表示是否过滤掉时间过期了的任务
             screen_num: bool 表示是否过滤掉完成数量上满足了的任务
+            accept_id: int 表示是否过滤掉已经接受的任务
+        Return:
+            task_list: [Task] 任务列表
         '''
         if last_id != -1:
             query = query.filter(Task.id < last_id)
+        if accept_id != -1:
+            query = query.join(Accept).filter(Accept.task_id == Task.id, Accept.accept_id != accept_id)
         if screen_time:
             now = datetime.now()
             query = query.filter(Task.limit_time > now)
@@ -535,6 +560,27 @@ class DBHelper:
             for task in tasks:
                 self.get_publisher(task)
         return tasks
+
+    def accept_task(self, accept_id :int, task_id: int):
+        ''' 接受任务  
+        Args:
+            accept_id: int 接收者id
+            task_id: int 任务id
+        Return:
+            flag: bool 表示是否结束成功，比如已经接受过了，则不可接受，或者是task不存在
+            msg: str 表示失败原因
+        '''
+        task = Task.query.filter(Task.id == task_id).one_or_none()
+        if task is None:
+            return False, 'No such task.'
+        stu = Student.query.filter(Student.openid == accept_id).one_or_none()
+        if stu is None:
+            return False, 'No such student.'
+        accept = Accept.query.filter(Accept.task_id == task_id, Accept.accept_id == accept_id).one_or_none()
+        if accept is not None:
+            return False, 'Has been accepted.'
+        self.save(Accept(tag=task.tag, accept_id=accept_id, task_id=task.id, accept_time=datetime.now(), finish_time=DEFAULT_TIME))
+        return True, 'Accept successfully.'
 
     def finish_task(self, openid: int, task_id: int):
         '''完成任务  

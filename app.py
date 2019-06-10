@@ -9,7 +9,7 @@ from tools import utils
 from flask import Flask, request, json, url_for, Response
 # from responses.manage_users import register_, get_verification_code_, enter_event_and_run_scheduler
 # from responses.get_tasks import get_tasks_by_
-from responses import register_, get_verification_code_, enter_event_and_run_scheduler, get_tasks_by_, create_task_
+from responses import register_, get_verification_code_, enter_event_and_run_scheduler, get_tasks_by_, create_task_, accept_task_
 from flask_uploads import UploadSet, configure_uploads, IMAGES, patch_request_class
 from tools.utils import generate_verification_code
 
@@ -105,6 +105,11 @@ def create_task():
 			return str({'error': 1, "data": {'msg': '图片上传失败'}})
 
 
+@app.route('/tasks/accept/', methods=['POST'])
+def accept_task():
+	return accept_task_(request.form)
+
+
 @app.route('/tasks/upload_photo/<task_id>', methods=['POST', 'GET'])
 def upload_photo(task_id):
 	''' 任务图片上传(前端只能够上传数据或者文件，不能够同时)
@@ -172,8 +177,18 @@ def add_cash(open_id):
 def get_self_information(open_id):
 	# 获取用户个人信息
 	# TODO 还没有写完
-	print(db_helper.query_student(open_id))
-	return 'hhh'
+	id = int(open_id)
+	if id < 1000000:
+		org = db_helper.query_oraganization(id)
+		orders = ['email', 'name', 'cash']
+		patterns = make_pattern(len(orders))
+		info = model_repr(org, patterns, orders)
+	else:
+		stu = db_helper.query_student(id)
+		orders = ['email', 'student_id', 'name', 'sex', 'collage', 'grade', 'edu_bg', 'cash']
+		patterns = make_pattern(len(orders))
+		info = model_repr(stu, patterns, orders)
+	return info
 
 
 @app.route("/get_problem/<task_id>", methods=['GET'])

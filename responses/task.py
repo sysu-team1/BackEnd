@@ -7,7 +7,7 @@ text = 'text'
 
 def get_tasks_by_(args):
 	global publisher_id, accepter_id, tag, text
-	if('last_id' not in args):
+	if('last_id' not in args and 'task_id' not in args):
 		return str({'error': 1, "data": {'msg': '参数错误'}})
 	tasks = []
 	if(publisher_id in args):
@@ -19,11 +19,20 @@ def get_tasks_by_(args):
 		tasks = db_helper.get_task_by_tag(int(args.get(tag)), last_id = int(args.get('last_id')))
 	elif(text in args):
 		tasks = db_helper.get_task_by_text(int(args.get(text)), last_id = int(args.get('last_id')))
+	elif('task_id' in args):
+		tasks.append(db_helper.get_task_by_id(int(args.get('task_id'))))
 	else:
 		tasks = db_helper.get_task(last_id = int(args.get('last_id')))
 	tasks_str = '[' + ','.join([str(task) for task in tasks]) + ']'
 	res = "{'error': 0, 'data': {'msg': '获取成功', 'tasks': " + tasks_str + "}}"
 	return res
+
+def accept_task_(form):
+	success, msg = db_helper.accept_task(int(form['accepter_id']), int(form['task_id']))
+	res = {'error': 0, 'data': {'msg': msg}}
+	if(not success):
+		res = {'error': 1, 'data': {'msg': msg}}
+	return str(res)
 
 def create_task_(form):
 	pass
