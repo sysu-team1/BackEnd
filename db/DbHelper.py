@@ -575,6 +575,7 @@ class DBHelper:
         if accept is not None:
             return False, 'Has been accepted.'
         self.save(Accept(tag=task.tag, accept_id=accept_id, task_id=task.id, accept_time=datetime.now(), finish_time=DEFAULT_TIME))
+        task.accept_num = task.accept_num + 1
         return True, 'Accept successfully.'
 
     def finish_task(self, openid: int, task_id: int):
@@ -595,7 +596,6 @@ class DBHelper:
             flag, msg = self.carry_over(task.publish_id, openid, task.reward)
             if not flag:
                 return False, msg
-            task.accept_num = task.accept_num + 1
             accept.finish_time = datetime.now()
             # time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) 这个太浪费时间了，要调用三个方法
             self.commit()
