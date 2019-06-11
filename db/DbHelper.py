@@ -1,9 +1,4 @@
-<<<<<<< HEAD
 from .test import test_json, test_normal_crud, test_time, test_create_student_and_organization, test_accetp_and_publish
-=======
-
-from .test import test_json, test_normal_crud, test_time, test_create_student_and_organization
->>>>>>> 31d46760eefea817bfa43ec206aa257da495f0d2
 from .Accept import Accept
 from .Organization import Organization
 from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db, DEFAULT_TIME
