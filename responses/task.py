@@ -23,7 +23,7 @@ def get_tasks_by_(args):
 	elif('accepter_id' in args):
 		last_accept_time = args.get('last_accept_time')
 		dt = None
-		if(last_accept_time != ''):
+		if(last_accept_time != None and last_accept_time != ''):
 			dt = datetime.strptime(args.get('last_accept_time'), "%Y-%m-%d %H:%M:%S")
 		if(args.get('status') == 'all'):
 			tasks, last_accept_time_res = db_helper.get_all_accept_tasks(int(args.get('accepter_id')), last_accept_time = dt)
