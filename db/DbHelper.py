@@ -61,31 +61,39 @@ class DBHelper:
         for data in datas:
             self.save(data)
 
-    def update_student_or_organization(self, openid: int, attr_key: str, attr_val: str):
+    def update_student_or_organization(self, openid_or_target, attr_key: str, attr_val: str):
         '''更新学生或者组织  
         Args:
-            openid: int
+            openid: int/Student/Organization 如果有现成的Student或者Organization对象的话，就不用query了
             attr_key: str 属性的名字
             attr_val: str 属性的值
         Return:
             flag: bool 表示是否成功
             msg: str 表示失败原因
         '''
-        self.session.commit()
-        self.session.begin()
-        target = Student.query.filter(Student.openid == openid).with_for_update().one_or_none(
-        ) if openid >= app.config['SPLIT_STU_ORG'] else Organization.query.filter(Organization.openid == openid).with_for_update().one_or_none()
-        if target is None:
-            return False, 'No such user.'
+        self.session.commit()  # 避免下面的rollback误伤？？？好像所有的方法都会调用commit，也许不用加上这一行。
+        target = openid_or_target
+        if isinstance(target, int):
+            if target >= app.config['SPLIT_STU_ORG']:
+                target = Student.query.filter(
+                    Student.openid == target).with_for_update().one_or_none()
+            else:
+                target = Organization.query.filter(
+                    Organization.openid == target).with_for_update().one_or_none()
+            if target is None:
+                return False, '不存在该学生或组织'
         try:
-            if attr_key == 'grade':
+            if attr_key == 'email':
+                self.session.rollback()
+                return False, '邮箱不可修改'
+            elif attr_key == 'grade':
                 attr_val = int(attr_val)
             setattr(target, attr_key, attr_val)
             self.session.commit()
-            return True, ''
+            return True, '修改成功'
         except Exception as e:
             self.session.rollback()
-            return False, str(e)
+            return False, '发生异常: %s' % str(e)
 
     def delete(self, data):
         '''删除一个数据，分三种情况
@@ -605,16 +613,16 @@ class DBHelper:
         '''
         task = Task.query.filter(Task.id == task_id).one_or_none()
         if task is None:
-            return False, 'No such task.'
+            return False, '不存在该任务'
         stu = Student.query.filter(Student.openid == accept_id).one_or_none()
         if stu is None:
-            return False, 'No such student.'
+            return False, '不存在该用户'
         accept = Accept.query.filter(Accept.task_id == task_id, Accept.accept_id == accept_id).one_or_none()
         if accept is not None:
-            return False, 'Has been accepted.'
+            return False, '不能重复接受任务'
         self.save(Accept(tag=task.tag, accept_id=accept_id, task_id=task.id, accept_time=datetime.now(), finish_time=DEFAULT_TIME))
         task.accept_num = task.accept_num + 1
-        return True, 'Accept successfully.'
+        return True, '接受成功'
 
     def finish_task(self, openid: int, task_id: int):
         '''完成任务  
@@ -629,7 +637,7 @@ class DBHelper:
             # with self.session.begin():
             accept = Accept.query.filter(Accept.accept_id == openid, Accept.task_id == task_id).with_for_update().one_or_none()
             if accept is None:
-                return False, 'No such student ? No such task ? Or the student has not accepted this task!'
+                return False, '还没有接受该任务'
             task = Task.query.filter(Task.id == task_id).with_for_update().one_or_none()
             flag, msg = self.carry_over(task.publish_id, openid, task.reward)
             if not flag:
@@ -637,10 +645,10 @@ class DBHelper:
             accept.finish_time = datetime.now()
             # time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) 这个太浪费时间了，要调用三个方法
             self.session.commit()
-            return True, ''
+            return True, '任务完成'
         except Exception as e:
             self.session.rollback()
-            return False, str(e)
+            return False, '发生异常: %s' % str(e)
 
     def charge(self, openid: int, money_num: int):
         '''充钱  
@@ -649,20 +657,20 @@ class DBHelper:
             money_num: int 充的钱的数量
         Return:
             flag: bool 表示是否成功
-            msg: str 失败的原因，如果成功则为空
+            msg: str 失败的原因
         '''
         if money_num <= 0:
-            return False, 'money can not be less than or equals zero.'
+            return False, '充钱金额不能为非正数'
         try:
             target = Student.query.filter(Student.openid == openid).with_for_update().one_or_none(
             ) if openid >= app.config['SPLIT_STU_ORG'] else Organization.query.filter(Organization.openid == openid).with_for_update().one_or_none()
             target_money = target.cash + money_num
             target.cash = target_money
             self.session.commit()
-            return True, ''
+            return True, '充钱成功'
         except Exception as e:
             self.session.rollback()
-            return False, str(e)
+            return False, '发生异常: %s' % str(e)
         # if target.cash == target_money:
         #     return True
         # self.rollback()
@@ -676,23 +684,23 @@ class DBHelper:
             money_num: int 币数量
         Return:
             flag: bool 表示是否成功
-            msg: str 失败的原因，如果成功则为空
+            msg: str 失败的原因
         '''
         if money_num <= 0:
-            return False, 'money can not be less than or equals zero.'
+            return False, '转账的金额不能是非正数'
         try:
             source = Student.query.filter(Student.openid == source_id).with_for_update().one_or_none(
             ) if source_id >= app.config['SPLIT_STU_ORG'] else Organization.query.filter(Organization.openid == source_id).with_for_update().one_or_none()
             if money_num > source.cash:
-                return False, 'not enough money'
+                return False, '没有足够的钱'
             target = Student.query.filter(Student.openid == target_id).with_for_update().one_or_none()
             source.cash -= money_num
             target.cash += money_num
             self.session.commit()
-            return True, ''
+            return True, '转账成功'
         except Exception as e:
             self.rollback()
-            return False, str(e)
+            return False, '发生异常: %s' % str(e)
 
     def cash_in(self, openid: int, money_num: int):
         '''套现  
