@@ -51,7 +51,7 @@ class DBHelper:
             data: 必须是 Student/Organization/Task/Accept/Problem/Answer 中实例，作为被保存在数据库的对象
         '''
         self.session.add(data)
-        self.commit()
+        self.session.commit()
 
     def save_all(self, datas):
         '''保存批量数据  
@@ -111,7 +111,7 @@ class DBHelper:
         if isinstance(data, (Student, Organization)):
             Task.query.filter(Task.publish_id == data.openid).delete()
         self.session.delete(data)
-        self.commit()
+        self.session.commit()
 
     def delete_all(self, datas):
         '''删除批量数据  
@@ -179,7 +179,7 @@ class DBHelper:
         # 插入数据库
         stu = Student(email=email, password=password, student_id=student_id, sex=sex, collage=collage, grade=grade, name=name)
         self.save(stu)
-        self.commit()
+        self.session.commit()
         return 0, "", stu.openid
 
     def create_task(self, publish_id, limit_time, limit_num, title, content, tag, reward, problem_content=''):
@@ -217,8 +217,8 @@ class DBHelper:
                 problem = Problem(task_id = task.id, description=description, all_answers=all_answers)
                 problems.append(problem)
             self.save_all(problems)
-            self.commit()
-        self.commit()
+            self.session.commit()
+        self.session.commit()
         return 0, task
 
     def query_student(self, openid: int, get_all: bool=False):
@@ -476,7 +476,7 @@ class DBHelper:
             i += 1
         print(answers)
         self.save_all(answers)
-        self.commit()
+        self.session.commit()
 
     def get_all_answers(self, id_or_task):
         ''' 根据问卷id或者问卷获取所有的答案  
@@ -636,7 +636,7 @@ class DBHelper:
                 return False, msg
             accept.finish_time = datetime.now()
             # time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) 这个太浪费时间了，要调用三个方法
-            self.commit()
+            self.session.commit()
             return True, ''
         except Exception as e:
             self.session.rollback()
@@ -658,7 +658,7 @@ class DBHelper:
             ) if openid >= app.config['SPLIT_STU_ORG'] else Organization.query.filter(Organization.openid == openid).with_for_update().one_or_none()
             target_money = target.cash + money_num
             target.cash = target_money
-            self.commit()
+            self.session.commit()
             return True, ''
         except Exception as e:
             self.session.rollback()
@@ -688,7 +688,7 @@ class DBHelper:
             target = Student.query.filter(Student.openid == target_id).with_for_update().one_or_none()
             source.cash -= money_num
             target.cash += money_num
-            self.commit()
+            self.session.commit()
             return True, ''
         except Exception as e:
             self.rollback()
