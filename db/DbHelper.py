@@ -61,6 +61,30 @@ class DBHelper:
         for data in datas:
             self.save(data)
 
+    def update_student_or_organization(self, openid: int, attr_key: str, attr_val: str):
+        '''更新学生或者组织  
+        Args:
+            openid: int
+            attr_key: str 属性的名字
+            attr_val: str 属性的值
+        Return:
+            flag: bool 表示是否成功
+            msg: str 表示失败原因
+        '''
+        self.session.commit()
+        self.session.begin()
+        target = Student.query.filter(Student.openid == openid).with_for_update().one_or_none(
+        ) if openid >= app.config['SPLIT_STU_ORG'] else Organization.query.filter(Organization.openid == openid).with_for_update().one_or_none()
+        if target is None:
+            return False, 'No such user.'
+        try:
+            setattr(target, attr_key, attr_key)
+            self.session.commit()
+            return True, ''
+        except Exception as e:
+            self.session.rollback()
+            return False, str(e)
+
     def delete(self, data):
         '''删除一个数据，分三种情况
         1. 如果删除的是Problem，表示发布者在修改问卷，需要删除关联的所有回答
