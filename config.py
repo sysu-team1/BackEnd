@@ -2,9 +2,9 @@ from tools.utils import make_pattern
 from flask_uploads import IMAGES
 
 # 主机的MySQL账号:密码:端口号/数据库
-SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:mysql@localhost:3306/test2'
+# SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:mysql@localhost:3306/test2'
 # SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:960919AB@localhost:3308/test2'
-# SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:123456@localhost:3306/test2'
+SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:123456@localhost:3306/test2'
 # 是否输出
 SQLALCHEMY_ECHO = False
 
@@ -20,7 +20,7 @@ ORGANIZATION_JSON_PATTERN = make_pattern(len(ORGANIZATION_JSON_ATTR_ORDER))
 
 # task attr list
 TASK_JSON_ATTR_ORDER = [
-    'id', 'publish_id', 'publish_time', 'limit_time', 'limit_num', 'accept_num', 'title', 'content', 'tag', 'image_path', 'reward']
+    'id', 'publish_id', 'publish_time', 'limit_time', 'limit_num', 'accept_num', 'title', 'content', 'tag', 'image_path', 'reward', 'publisher']
 TASK_JSON_PATTERN = make_pattern(len(TASK_JSON_ATTR_ORDER))
 
 # accept task attr list

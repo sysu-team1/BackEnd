@@ -1,30 +1,48 @@
 from db import db_helper, app, model_repr
+from datetime import datetime
 
-publisher_id  = 'publisher_id'
-accepter_id = 'accepter_id'
-tag = 'tag'
-text = 'text'
+# publisher_id  = 'publisher_id'
+# accepter_id = 'accepter_id'
+# tag = 'tag'
+# text = 'text'
 
 def get_tasks_by_(args):
-	global publisher_id, accepter_id, tag, text
-	if('last_id' not in args and 'task_id' not in args):
-		return str({'error': 1, "data": {'msg': '参数错误'}})
+	# global publisher_id, accepter_id, tag, text
+	msg = '获取成功'
 	tasks = []
-	if(publisher_id in args):
-		tasks = db_helper.get_publish_tasks(int(args.get(publisher_id)), last_id = int(args.get('last_id')))
-		print(tasks)
-	elif(accepter_id in args):
-		tasks = db_helper.get_accept_tasks(int(args.get(accepter_id)), last_id = int(args.get('last_id')))
-	elif(tag in args):
-		tasks = db_helper.get_task_by_tag(int(args.get(tag)), last_id = int(args.get('last_id')))
-	elif(text in args):
-		tasks = db_helper.get_task_by_text(int(args.get(text)), last_id = int(args.get('last_id')))
-	elif('task_id' in args):
+	last_accept_time_res = None
+	if('task_id' in args):
 		tasks.append(db_helper.get_task_by_id(int(args.get('task_id'))))
+	elif('publisher_id' in args):
+		if(args.get('status') == 'all'):
+			tasks = db_helper.get_all_publish_tasks(int(args.get('publisher_id')), last_id = int(args.get('last_id')))
+		elif(args.get('status') == 'ongoing'):
+			tasks = db_helper.get_ongoing_publish_tasks(int(args.get('publisher_id')), last_id = int(args.get('last_id')))
+		elif(args.get('status') == 'finished'):
+			tasks = db_helper.get_finished_publish_tasks(int(args.get('publisher_id')), last_id = int(args.get('last_id')))
+	elif('accepter_id' in args):
+		last_accept_time = args.get('last_accept_time')
+		dt = None
+		if(last_accept_time != ''):
+			dt = datetime.strptime(args.get('last_accept_time'), "%Y-%m-%d %H:%M:%S")
+		if(args.get('status') == 'all'):
+			tasks, last_accept_time_res = db_helper.get_all_accept_tasks(int(args.get('accepter_id')), last_accept_time = dt)
+		elif(args.get('status') == 'ongoing'):
+			tasks, last_accept_time_res = db_helper.get_ongoing_accept_tasks(int(args.get('accepter_id')), last_accept_time = dt)
+		elif(args.get('status') == 'finished'):
+			tasks, last_accept_time_res = db_helper.get_finished_accept_tasks(int(args.get('accepter_id')), last_accept_time = dt)
+		elif(args.get('status') == 'complete'):
+			tasks, last_accept_time_res = db_helper.get_complete_accept_tasks(int(args.get('accepter_id')), last_accept_time = dt)
+		if(last_accept_time_res != None):
+			msg = last_accept_time_res.strftime("%Y-%m-%d %H:%M:%S")
+	elif('tag' in args):
+		tasks = db_helper.get_task_by_tag(args.get('tag'), last_id = int(args.get('last_id')))
+	elif('text' in args):
+		tasks = db_helper.get_task_by_text(str(args.get('text')), last_id = int(args.get('last_id')))
 	else:
 		tasks = db_helper.get_task(last_id = int(args.get('last_id')))
 	tasks_str = '[' + ','.join([str(task) for task in tasks]) + ']'
-	res = "{'error': 0, 'data': {'msg': '获取成功', 'tasks': " + tasks_str + "}}"
+	res = "{\"error\": 0, \"data\": {\"msg\": \"" + msg + "\", \"tasks\": " + tasks_str + "}}"
 	return res
 
 def accept_task_(form):
