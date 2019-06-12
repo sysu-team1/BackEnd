@@ -78,7 +78,9 @@ class DBHelper:
         if target is None:
             return False, 'No such user.'
         try:
-            setattr(target, attr_key, attr_key)
+            if attr_key == 'grade':
+                attr_val = int(attr_val)
+            setattr(target, attr_key, attr_val)
             self.session.commit()
             return True, ''
         except Exception as e:
