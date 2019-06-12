@@ -9,7 +9,7 @@ from tools import utils
 from flask import Flask, request, json, url_for, Response
 # from responses.manage_users import register_, get_verification_code_, enter_event_and_run_scheduler
 # from responses.get_tasks import get_tasks_by_
-from responses import register_, get_verification_code_, enter_event_and_run_scheduler, get_tasks_by_, create_task_, accept_task_
+from responses import register_, get_verification_code_, enter_event_and_run_scheduler, get_tasks_by_, create_task_, accept_task_, update_
 from flask_uploads import UploadSet, configure_uploads, IMAGES, patch_request_class
 from tools.utils import generate_verification_code
 
@@ -53,6 +53,10 @@ def get_verification_code():
 	# print(data['email'])
 	return get_verification_code_(request.form['email'])
 
+
+@app.route('/user/update/', methods=['POST'])
+def update():
+	return update_(request.form)
 
 @app.route('/tasks/search/', methods=['GET'])
 def get_tasks_by():

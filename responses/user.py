@@ -108,6 +108,45 @@ def enter_event_and_run_scheduler():
 			t.start()
 	scheduler_lock.release()
 
+
+def update_(form):
+	'''更新用户信息
+        可以传递的属性有password/student_id/sex/collage/grade/name/edu_bg/signature
+    input:
+        openid
+        attrs
+        (old_password:)
+    output:
+        error
+        data:
+            msg: 旧密码错误/修改成功/修改异常/ 不存在该学生/组织 / 邮箱不可修改
+    '''
+	openid = int(form['openid'])
+	success = True
+	msg = "更改成功"
+	for item in form.items():
+		if(item[0] == 'openid' or item[0] == 'old_password'):
+			continue
+		if(item[0] == 'password'):
+			target = db_helper.query_student(openid) if openid >= app.config['SPLIT_STU_ORG'] else db_helper.query_oraganization(openid)
+			if target == None:
+				return str({'error': 1, "data": {'msg': '不存在该学生或组织'}})
+			if('old_password' not in form):
+				return str({"error": 1, "data": {"msg": '请输入旧密码'}})
+			if target.password == form['old_password']:
+				success, msg = db_helper.update_student_or_organization(openid, item[0], item[1])
+				if(not success):
+					return str({"error": 1, "data": {"msg": msg}})
+			else:
+				return str({'error': 1, "data": {'msg': '旧密码错误'}})
+		else:
+			success, msg = db_helper.update_student_or_organization(openid, item[0], item[1])
+			if(not success):
+				return str({"error": 1, "data": {"msg": msg}})
+	return str({"error": 0, "data": {"msg": "更改成功"}})
+
+
+
 # def printf():
 # 	print(s.empty())
 # 	print('test')
