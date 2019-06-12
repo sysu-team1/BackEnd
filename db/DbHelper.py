@@ -702,4 +702,4 @@ if app.config['ADD_RANDOM_SAMPLE']:
     test_normal_crud(db_helper)
 # test_normal_crud(db_helper)
 # test_create_student_and_organization(db_helper)
-test_accetp_and_publish(db_helper, update_add_num)
+# test_accetp_and_publish(db_helper, update_add_num)
