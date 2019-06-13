@@ -253,3 +253,80 @@ def test_create_student_and_organization(db_helper):
     db_helper.save_all(stus)
     db_helper.save_all(org)
     db_helper.commit()
+
+
+def test_some_methods(db_helper, app, update_add_num):
+    # ---------- test save / query_student / query_oraganization / delete_all
+    # stu = Student(email='liangyy75@qq.com', password='liangyy75@pass', student_id='16340134', name='liangyy75', sex='男', collage='数据科学与计算机学院', grade=2016, edu_bg='本科')
+    # print(db_helper.save(stu))
+    # print(db_helper.query_student(openid=stu.openid))
+    # org = Organization(email='liangyy75@qq.com', password='liangyy75@pass', name='test org')
+    # db_helper.save(org)
+    # print(db_helper.query_oraganization(org.openid))
+    # db_helper.delete(stu)
+    # db_helper.delete_all([org])
+
+    # ---------- test delete
+    # print(db_helper.query_oraganization(openid=11))
+    # db_helper.delete(db_helper.query_oraganization(openid=11))
+    # print(db_helper.query_oraganization(openid=11))
+
+    # ---------- test update_student_or_organization
+    # print(db_helper.query_student(openid=app.config['SPLIT_STU_ORG'] + 10).sex)
+    # print(db_helper.update_student_or_organization(
+    #     app.config['SPLIT_STU_ORG'] + 10, 'sex', '男'))
+    # print(db_helper.query_student(openid=app.config['SPLIT_STU_ORG'] + 10).sex)
+    # print(db_helper.update_student_or_organization(
+    #     app.config['SPLIT_STU_ORG'] + 10, 'sex', '女'))
+    # print(db_helper.query_student(openid=app.config['SPLIT_STU_ORG'] + 10).sex)
+
+    # ---------- test has_accept / get_recipient / sign_up_true / accept_task
+    # recipients = db_helper.get_recipient(1, length=100)
+    # print(len(recipients))
+    # print(db_helper.has_accept(recipients[0].openid, 1))
+    # print(db_helper.sign_up_true(email='liangyy75@qq2.com', password='liangyy75@pass2', student_id='16340134', sex='男', collage='数据科学与计算机学院', grade=2016, name='liangyy75'))
+    # stu = Student.query.filter(Student.email == 'liangyy75@qq2.com').one_or_none()
+    # print(db_helper.has_accept(stu.openid, 1))
+    # print(db_helper.accept_task(stu.openid, 1))
+    # print(len(db_helper.get_recipient(1, length=100)))
+    # print(db_helper.has_accept(stu.openid, 1))
+    # print(db_helper.delete(stu))
+    # print(len(db_helper.get_recipient(1, length=100)))
+    # print(db_helper.has_accept(stu.openid, 1))
+
+    # ---------- test get_xxx_publish_task / get_xxx_accept_task / get_task_by_xxx
+    # test_time(db_helper, update_add_num)
+    # print('-' * 100)
+    # test_accetp_and_publish(db_helper, update_add_num)
+
+    # ---------- test get_publisher / get_recipient / get_all_problems / get_all_answers
+    # print(db_helper.get_task_by_id(1))
+    # print(db_helper.get_publisher(1))
+    # print(db_helper.get_publisher(1) == db_helper.get_task_by_id(1).publisher)
+    # print(len(db_helper.get_recipient(1, length=100)))
+    # print(len(db_helper.get_all_problems(1).split('^')))
+    # print(len(db_helper.get_all_answers(1)))
+    # print(sum(map(lambda item: len(item), db_helper.get_all_answers(1))))
+
+    # ---------- test finish_task / cancel_task / accept_task / has_accept
+    # print(db_helper.sign_up_true(email='liangyy75@qq2.com', password='liangyy75@pass2', student_id='16340134', sex='男', collage='数据科学与计算机学院', grade=2016, name='liangyy75'))
+    # stu = Student.query.filter(Student.email == 'liangyy75@qq2.com').one_or_none()
+    # print(db_helper.cancel_task(stu.openid, 1))
+    # print(db_helper.has_accept(stu.openid, 1))
+    # print(db_helper.accept_task(stu.openid, 1))
+    # print(db_helper.has_accept(stu.openid, 1))
+    # print(Accept.query.filter(Accept.accept_id == stu.openid).filter(
+    #     Accept.task_id == 1).one_or_none().finish_time)
+    # print(db_helper.finish_task(stu.openid, 1))
+    # print(Accept.query.filter(Accept.accept_id == stu.openid).filter(
+    #     Accept.task_id == 1).one_or_none().finish_time)
+    # db_helper.delete(stu)
+
+    # ---------- test charge / carry_over / cash_in
+    print(db_helper.query_oraganization(openid=1).cash)
+    print(db_helper.charge(1, 1000))
+    print(db_helper.query_oraganization(openid=1).cash)
+    print(db_helper.query_student(openid=app.config['SPLIT_STU_ORG']).cash)
+    print(db_helper.carry_over(source_id=1, target_id=app.config['SPLIT_STU_ORG'], money_num=1000))
+    print(db_helper.query_student(openid=app.config['SPLIT_STU_ORG']).cash)
+    print(db_helper.query_oraganization(openid=1).cash)

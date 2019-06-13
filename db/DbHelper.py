@@ -1,4 +1,4 @@
-from .test import test_json, test_normal_crud, test_time, test_create_student_and_organization, test_accetp_and_publish
+from .test import test_json, test_normal_crud, test_time, test_create_student_and_organization, test_accetp_and_publish, test_some_methods
 from .Accept import Accept
 from .Organization import Organization
 from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db, DEFAULT_TIME
@@ -72,17 +72,18 @@ class DBHelper:
             msg: str 表示失败原因
         '''
         self.session.commit()  # 避免下面的rollback误伤？？？好像所有的方法都会调用commit，也许不用加上这一行。
-        target = openid_or_target
-        if isinstance(target, int):
-            if target >= app.config['SPLIT_STU_ORG']:
-                target = Student.query.filter(
-                    Student.openid == target).with_for_update().one_or_none()
-            else:
-                target = Organization.query.filter(
-                    Organization.openid == target).with_for_update().one_or_none()
-            if target is None:
-                return False, '不存在该学生或组织'
         try:
+            target = openid_or_target
+            if isinstance(target, int):
+                if target >= app.config['SPLIT_STU_ORG']:
+                    target = Student.query.filter(
+                        Student.openid == target).with_for_update().one_or_none()
+                else:
+                    target = Organization.query.filter(
+                        Organization.openid == target).with_for_update().one_or_none()
+                if target is None:
+                    self.session.rollback()
+                    return False, '不存在该学生或组织'
             if attr_key == 'email':
                 self.session.rollback()
                 return False, '邮箱不可修改'
@@ -611,18 +612,58 @@ class DBHelper:
             flag: bool 表示是否结束成功，比如已经接受过了，则不可接受，或者是task不存在
             msg: str 表示失败原因
         '''
-        task = Task.query.filter(Task.id == task_id).one_or_none()
-        if task is None:
-            return False, '不存在该任务'
-        stu = Student.query.filter(Student.openid == accept_id).one_or_none()
-        if stu is None:
-            return False, '不存在该用户'
-        accept = Accept.query.filter(Accept.task_id == task_id, Accept.accept_id == accept_id).one_or_none()
-        if accept is not None:
-            return False, '不能重复接受任务'
-        self.save(Accept(tag=task.tag, accept_id=accept_id, task_id=task.id, accept_time=datetime.now(), finish_time=DEFAULT_TIME))
-        task.accept_num = task.accept_num + 1
-        return True, '接受成功'
+        self.session.commit()
+        try:
+            task = Task.query.filter(Task.id == task_id).with_for_update().one_or_none()
+            if task is None:
+                self.session.rollback()
+                return False, '不存在该任务'
+            stu = Student.query.filter(Student.openid == accept_id).one_or_none()
+            if stu is None:
+                self.session.rollback()
+                return False, '不存在该用户'
+            accept = Accept.query.filter(Accept.task_id == task_id, Accept.accept_id == accept_id).one_or_none()
+            if accept is not None:
+                self.session.rollback()
+                return False, '不能重复接受任务'
+            self.session.add(Accept(tag=task.tag, accept_id=accept_id, task_id=task.id, accept_time=datetime.now(), finish_time=DEFAULT_TIME))
+            task.accept_num = task.accept_num + 1
+            self.session.commit()
+            return True, '接受成功'
+        except Exception as e:
+            self.session.rollback()
+            return False, '发生异常: %s' % str(e)
+
+    def cancel_task(self, accept_id: int, task_id: int):
+        '''取消接受的任务  
+        Args:
+            accept_id: int 接收者id
+            task_id: int 任务id
+        Return:
+            flag: bool 表示是否结束成功，比如还没有接受过任务，则不可取消接受，或者是task不存在
+            msg: str 表示失败原因
+        '''
+        self.session.commit()
+        try:
+            task = Task.query.filter(Task.id == task_id).with_for_update().one_or_none()
+            if task is None:
+                self.session.rollback()
+                return False, '不存在该任务'
+            stu = Student.query.filter(Student.openid == accept_id).one_or_none()
+            if stu is None:
+                self.session.rollback()
+                return False, '不存在该用户'
+            accept = Accept.query.filter(Accept.task_id == task_id, Accept.accept_id == accept_id).with_for_update().one_or_none()
+            if accept is None:
+                self.session.rollback()
+                return False, '尚未接受该任务'
+            self.session.delete(accept)
+            task.accept_num = task.accept_num - 1
+            self.session.commit()
+            return True, '取消成功'
+        except Exception as e:
+            self.session.rollback()
+            return False, '发生异常: %s' % str(e)
 
     def finish_task(self, openid: int, task_id: int):
         '''完成任务  
@@ -633,15 +674,19 @@ class DBHelper:
             flag: bool 表示是否成功
             msg: str 表示出错信息
         '''
+        self.session.commit()
         try:
             # with self.session.begin():
             accept = Accept.query.filter(Accept.accept_id == openid, Accept.task_id == task_id).with_for_update().one_or_none()
             if accept is None:
+                self.session.rollback()
                 return False, '还没有接受该任务'
             task = Task.query.filter(Task.id == task_id).with_for_update().one_or_none()
-            flag, msg = self.carry_over(task.publish_id, openid, task.reward)
-            if not flag:
-                return False, msg
+            if task.reward > 0:
+                flag, msg = self.carry_over(task.publish_id, openid, task.reward)
+                if not flag:
+                    self.session.rollback()
+                    return False, msg
             accept.finish_time = datetime.now()
             # time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) 这个太浪费时间了，要调用三个方法
             self.session.commit()
@@ -749,3 +794,4 @@ if app.config['ADD_RANDOM_SAMPLE']:
 # test_normal_crud(db_helper)
 # test_create_student_and_organization(db_helper)
 # test_accetp_and_publish(db_helper, update_add_num)
+# test_some_methods(db_helper, app, update_add_num)
