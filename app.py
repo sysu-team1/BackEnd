@@ -12,6 +12,8 @@ from flask import Flask, request, json, url_for, Response
 from responses import register_, get_verification_code_, enter_event_and_run_scheduler, get_tasks_by_, create_task_, accept_task_, update_
 from flask_uploads import UploadSet, configure_uploads, IMAGES, patch_request_class
 from tools.utils import generate_verification_code
+import os
+
 
 @app.route('/')
 def test():
@@ -165,6 +167,33 @@ def index(image_path):
 		image = f.read()
 	pic_url = Response(image, mimetype="image/jpeg")
 	return pic_url
+
+
+@app.route("/temp/upload/<openid>", methods=['POST']) 
+def upload_temp_image(openid):
+	openid = int(openid)
+	filenames = os.listdir("./images")
+	for filename in filenames:
+		temp = filename.split('--')
+		if len(temp) < 2:
+			continue
+		if temp[1] == str(openid) + '.png':
+			os.remove('./images/' + filename)
+			print('删除重复文件')
+			break
+	photo = request.files['photo']
+	if photo.filename == '':
+		print('No selected file')
+		return str({'error': 1, "data": {'msg': '没有图片上传', 'url':""}})
+	else:
+		try:
+			photo.filename = generate_verification_code() + '--' + str(openid) + '.png'
+			uploaded_photos.save(photo)
+			image_path = uploaded_photos.url(photo.filename)
+			return str({'error': 0, "data": {'msg': '创建成功', 'url': image_path}})
+		except Exception as e:
+			print('upload file exception: %s' % e)
+			return str({'error': 1, "data": {'msg': '图片上传失败', 'url':""}})
 
 
 @app.route("/add_cash/<open_id>", methods=['POST'])
