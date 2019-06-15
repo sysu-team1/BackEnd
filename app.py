@@ -251,9 +251,19 @@ def get_answer(task_id):
 	# TODO 获取问卷的所有答案
 	pass
 
+@app.route("/initial/", methods=['GET'])
+def initial_():
+	'''初始化数据库
+	'''
+	try:
+		stus, orgs = db_helper.initial_data()
+		return str({'error' : 0, 'data': {'stus': str(stus), 'orgs': str(orgs)}})
+	except Exception:
+		return str({'error' : 1})
+
 
 if __name__ == "__main__":
 	uploaded_photos = UploadSet('photos')
 	configure_uploads(app, uploaded_photos)
 	enter_event_and_run_scheduler()
-	app.run(debug=True, use_reloader=False)
+	app.run(debug=True)

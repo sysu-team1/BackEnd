@@ -1,12 +1,13 @@
 from .test import test_json, test_normal_crud, test_time, test_create_student_and_organization, test_accetp_and_publish, test_some_methods
 from .Accept import Accept
 from .Organization import Organization
-from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db, DEFAULT_TIME
+from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db, DEFAULT_TIME, STUDENT_NAME, SEX, GRADE, COLLAGES, EDUBG, ORGANIZATION_NAME, ALL_SIGNATURE
 from .Student import Student
 from .Task import Task
 from .Problem import Problem
 from .Answer import Answer
 from datetime import datetime
+import random, copy
 
 update_add_num = app.config['UPDATE_ADD_NUM']
 default_datetime = datetime.strptime(DEFAULT_TIME, "%Y-%m-%d %H:%M:%S")
@@ -759,6 +760,63 @@ class DBHelper:
         '''
         raise NotImplementedError('暂不支持套现')
 
+    def delete_db(self):
+        '''清空数据库
+        '''
+        ans = self.session.query(Answer)
+        pros = self.session.query(Problem)
+        accs = self.session.query(Accept)
+        tasks = self.session.query(Task)
+        stus = self.session.query(Student)
+        org = self.session.query(Organization)
+        self.delete_all(ans)
+        self.delete_all(pros)
+        self.delete_all(accs)
+        self.delete_all(tasks)
+        self.delete_all(stus)
+        self.delete_all(org)
+        self.commit()
+
+    def initial_data(self):
+        '''初始化数据库
+        '''
+        self.delete_db()
+        tag_len = len(ALL_TAGS)
+        stus = []
+        orgs = []
+        num = 30
+        stu_name = copy.deepcopy(STUDENT_NAME)
+        org_name = copy.deepcopy(ORGANIZATION_NAME)
+        for i in range(num):
+            name = random.choice(stu_name)
+            stu_name.remove(name)
+            sex = random.choice(SEX)
+            collage = random.choice(COLLAGES)
+            grade = random.choice(GRADE)
+            edu_bg = random.choice(EDUBG)
+            collage_index = COLLAGES.index(collage)
+            student_id = str(grade % 100) + "{:0>2d}".format(collage_index) + "{:0>4d}".format(STUDENT_NAME.index(name))
+            rnum = random.randint(0, tag_len)
+            tag = []
+            all_tags = copy.deepcopy(ALL_TAGS)
+            while len(tag) < rnum:
+                index = random.randint(0, len(all_tags) - 1)
+                tag.append(all_tags[index])
+                all_tags.pop(index)
+            tag = ','.join(tag)
+            length = random.randint(5, 10)
+            signature = ','.join(random.sample(ALL_SIGNATURE, length))
+            stus.append(Student(email='stu{}@mail2.sysu.edu.cn'.format(student_id), password='pass{}'.format(
+                student_id), student_id=student_id, name=name, sex=sex, collage=collage, grade=grade, edu_bg=edu_bg, tag=tag, signature=signature, cash=random.randint(10, 5000)))
+            description = ','.join(random.sample(ALL_SIGNATURE, length))
+            name = random.choice(org_name)
+            org_name.remove(name)
+            orgs.append(Organization(email='org{}@qq.com'.format(ORGANIZATION_NAME.index(name)), password='pass{}'.format(
+                ORGANIZATION_NAME.index(name)), name= name, description=description, cash=random.randint(100, 5000)))
+        self.save_all(stus)
+        self.save_all(orgs)
+        self.commit()
+        return stus, orgs
 
 db_helper = DBHelper(db, drop_all=app.config['DROP_ALL'])
 
