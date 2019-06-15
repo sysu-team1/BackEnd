@@ -69,7 +69,7 @@ def get_tasks_by():
 def create_task():
 	''' 任务的创建
 	参数：
-		publish_id, 发布人id ，也就是open_id
+		publish_id, 发布人id ，也就是openid
 		limit_time, ddl
 		limit_num, 限制人数数量
 		title, task标题
@@ -196,21 +196,21 @@ def upload_temp_image(openid):
 			return str({'error': 1, "data": {'msg': '图片上传失败', 'url':""}})
 
 
-@app.route("/add_cash/<open_id>", methods=['POST'])
-def add_cash(open_id):
+@app.route("/add_cash/<openid>", methods=['POST'])
+def add_cash(openid):
 	# 用于充钱的
 	add_cash_num = request.form['money']
-	error, msg = db_helper.charge(int(open_id), int(add_cash_num))
+	error, msg = db_helper.charge(int(openid), int(add_cash_num))
 	error = 1 if error == False else 0
 	msg = '充钱成功' if error == 0 else '充钱失败'
 	return str({'error': error, "data": {'msg': msg}})
 
 
-@app.route("/my/<open_id>", methods=['GET'])
-def get_self_information(open_id):
+@app.route("/my/<openid>", methods=['GET'])
+def get_self_information(openid):
 	# 获取用户个人信息
 	# TODO 还没有写完
-	id = int(open_id)
+	id = int(openid)
 	if id < 1000000:
 		org = db_helper.query_oraganization(id)
 		orders = ['email', 'name', 'cash']
@@ -236,13 +236,13 @@ def get_problem(task_id):
 def post_answer():
 	'''
 	提交问卷答案
-	需要task_id, open_id, answer_content，使用^进行切分
+	需要task_id, openid, answer_content，使用^进行切分
 	'''
 	
 	task_id = request.form['task_id']
 	answer_content = request.form['answer']
-	open_id = request.form['open_id']
-	db_helper.post_answer(task_id, answer_content, open_id)
+	openid = request.form['openid']
+	db_helper.post_answer(task_id, answer_content, openid)
 	return str({'error': 0, "data": {'msg': '提交成功'}})
 
 

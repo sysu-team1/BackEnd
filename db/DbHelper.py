@@ -185,7 +185,7 @@ class DBHelper:
         '''
         stu = Student.query.filter(Student.email == email).one_or_none()
         if stu is not None:
-            return 1, 'already exist', None
+            return 1, '帐户已经存在', None
         # 插入数据库
         stu = Student(email=email, password=password, student_id=student_id, sex=sex, collage=collage, grade=grade, name=name)
         self.save(stu)
