@@ -26,6 +26,7 @@ def send_email(rcptto, username=secret_key.USERNAME, password=secret_key.PASSWOR
 
     # 生成6位验证码
     code = generate_verification_code()
+    print("验证码是", code)
     # 构建alternative结构
     msg = MIMEMultipart('alternative')
     msg['Subject'] = Header('验证码').encode()
@@ -41,7 +42,7 @@ def send_email(rcptto, username=secret_key.USERNAME, password=secret_key.PASSWOR
     msg.attach(texthtml)
     # 发送邮件
     try:
-        client = smtplib.SMTP_SSL(host='smtp.gmail.com')
+        client = smtplib.SMTP_SSL(host='smtp.gmail.com', timeout=5)
         client.connect('smtpdm.aliyun.com', 465)
         # 开启DEBUG模式
         client.set_debuglevel(0)
@@ -50,12 +51,13 @@ def send_email(rcptto, username=secret_key.USERNAME, password=secret_key.PASSWOR
         client.quit()
         print('邮件发送成功！')
     except Exception as e:
-        if error > 4:
-            return -1
+        # if error > 4:
+        #     return -1
         print('邮件发送异常, ', str(e))
-        print('重新发送中...')
-        error += 1
-        code = send_email(rcptto, error=error)
+        # print('重新发送中...')
+        # error += 1
+        # code = send_email(rcptto, error=error)
+        return -1
     return code
 
 
