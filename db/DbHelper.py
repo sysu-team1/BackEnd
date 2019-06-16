@@ -437,7 +437,10 @@ class DBHelper:
                 return None
         task = id_or_task
         accepts = task.accepts[start : length]
-        return [accept.student for accept in accepts]
+        recipients = [accept.student for accept in accepts]
+        for recipient in recipients:
+            recipient.password = ''
+        return recipients
 
     def get_publisher(self, id_or_task):
         '''根据task_id或者task找到任务发布者  
