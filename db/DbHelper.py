@@ -196,7 +196,7 @@ class DBHelper:
         '''创建任务
 
         参数：
-        publish_id, 发布人id ，也就是open_id
+        publish_id, 发布人id ，也就是openid
         limit_time, ddl
         limit_num, 限制人数数量
         title, task标题
@@ -208,11 +208,13 @@ class DBHelper:
         error
         task
         '''
-        # 判断发布人是否有足够的钱财进行发布任务
+        # 判断发布人是否有足够的钱财进行发布任务 -> 转化为直接扣除 06/16
         target = Student.query.filter(Student.openid == publish_id).one_or_none(
         ) if publish_id >= 100000 else Organization.query.filter(Organization.openid == publish_id).one_or_none()
         if int(target.cash) < int(limit_num) * int(reward):
             return 1, -1
+        else:
+            target.cash -= int(limit_num) * int(reward)
         task = Task(publish_id=publish_id, publish_time=datetime.now(), limit_time=limit_time,
                     limit_num=limit_num, title=title, content=content, tag=tag, reward=reward)
         self.save(task)
@@ -475,21 +477,32 @@ class DBHelper:
         print(problem_content)
         return problem_content
 
-    def post_answer(self, task_id: int, answer_content: str, open_id: int):
+    def post_answer(self, task_id: int, answer_content: str, openid: int):
         '''
-        提交问卷答案
+        提交问卷答案, 意味着完成任务
         '''
-        # TODO 逻辑上的一些问题 比如填完之后进行转账？还有limit_num减少
-        answer_list = answer_content.split('^')
-        all_problems = Problem.query.filter(Problem.task_id == task_id)
+        task_id = int(task_id)
+        openid = int(openid)
+        answer_list = answer_content.split('#')
+        task = Task.query.filter(Task.id == task_id).one_or_none()
+        accept = Accept.query.filter(Accept.accept_id == int(openid)).one_or_none()
+        print(accept)
         i = 0
         answers = []
-        for problem in all_problems:
-            answers.append(Answer(accept_id=int(open_id), problem_id=problem.id, answer=int(answer_list[i])))
+        for problem in task.problems:
+            answers.append(Answer(accept_id=int(accept.id), problem_id=problem.id, answer=int(answer_list[i])))
             i += 1
         print(answers)
         self.save_all(answers)
-        self.session.commit()
+        # 添加完成时间
+        accept_task = Accept.query.filter(Accept.task_id == task_id, Accept.accept_id == openid)
+        accept_task.finish_time = datetime.now()
+        # 添加转钱事件
+        target = Student.query.filter(Student.openid == openid).one_or_none(
+        ) if openid >= 100000 else Organization.query.filter(Organization.openid == openid).one_or_none()
+        target.cash += task.reward
+        self.commit()
+        return task.reward
 
     def get_all_answers(self, id_or_task):
         ''' 根据问卷id或者问卷获取所有的答案  
@@ -510,6 +523,22 @@ class DBHelper:
         for problem in task.problems:
             all_answers.append(problem.answers)
         return all_answers
+
+    def get_answers(self, openid: int, task_id: int):
+        '''根据问卷人id获取自己填写的信息
+        '''
+        accept_task = Accept.query.filter(Accept.task_id == task_id, Accept.accept_id == openid).one_or_none()
+        if accept_task.tag != '问卷':
+            return False, '该任务不是问卷类型，无表单'
+        task = Task.query.filter(Task.id == task_id).one_or_none()
+        all_answers = []
+        for problem in task.problems:
+            for answer in problem.answers:
+                if answer.accept_id == accept_task.id:
+                    all_answers.append(problem.description)
+                    all_answers.append(problem.all_answers)
+                    all_answers.append(answer.answer)
+        return True, all_answers
 
     def get_task_by_id(self, task_id, get_publisher: bool=True):
         ''' 根据任务id返回任务
@@ -691,14 +720,17 @@ class DBHelper:
                 return False, '还没有接受该任务'
             task = Task.query.filter(Task.id == task_id).with_for_update().one_or_none()
             if task.reward > 0:
-                flag, msg = self.carry_over(task.publish_id, openid, task.reward)
-                if not flag:
-                    self.session.rollback()
-                    return False, msg
+                # flag, msg = self.carry_over(task.publish_id, openid, task.reward)
+                # if not flag:
+                #     self.session.rollback()
+                #     return False, msg
+                target = Student.query.filter(Student.openid == openid).one_or_none(
+                ) if openid >= 100000 else Organization.query.filter(Organization.openid == openid).one_or_none()
+                target.cash += task.reward
             accept.finish_time = datetime.now()
             # time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) 这个太浪费时间了，要调用三个方法
             self.session.commit()
-            return True, '任务完成'
+            return True, '任务完成, 已获取{}鱼币'.format(task.reward)
         except Exception as e:
             self.session.rollback()
             return False, '发生异常: %s' % str(e)

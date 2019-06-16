@@ -105,7 +105,7 @@ def create_task():
 			uploaded_photos.save(photo)
 			new_task.image_path = uploaded_photos.url(photo.filename)
 			db_helper.commit()
-			return str({'error': 0, "data": {'msg': '创建成功'}})
+			return str({'error': 0, "data": {'msg': '创建成功,已扣除{}鱼币'.format(int(request.form['limit_num']) * int(request.form['reward']))}})
 		except Exception as e:
 			print('upload file exception: %s' % e)
 			return str({'error': 1, "data": {'msg': '图片上传失败'}})
@@ -236,20 +236,54 @@ def get_problem(task_id):
 def post_answer():
 	'''
 	提交问卷答案
-	需要task_id, openid, answer_content，使用^进行切分
+	需要task_id, openid, answer_content，使用#进行切分
 	'''
 	
 	task_id = request.form['task_id']
 	answer_content = request.form['answer']
 	openid = request.form['openid']
-	db_helper.post_answer(task_id, answer_content, openid)
-	return str({'error': 0, "data": {'msg': '提交成功'}})
+	try:
+		cash = db_helper.post_answer(task_id, answer_content, openid)
+		return str({'error': 0, "data": {'msg': '提交成功, 获取{}鱼币'.format(cash)}})
+	except Exception as e:
+		return str({'error': 1, "data": {'msg': str(e)}})
 
 
-@app.route("/get_answer/<task_id>", methods=['GET'])
-def get_answer(task_id):
-	# TODO 获取问卷的所有答案
-	pass
+@app.route("/finish_task/", methods=['POST'])
+def finish_task():
+	'''
+	完成任务（除了问卷以外的类型的任务
+	需要task_id, openid
+	return:
+		error
+		data
+			msg: '还没有接受该任务'/'任务完成, 已获取{}鱼币'/'发生异常: %s'
+	'''
+	error, msg = db_helper.finish_task(int(request.form['openid']), int(request.form['task_id']))
+	error = 0 if error == True else 1
+	return str({'error': error, "data": {'msg': msg}})
+
+
+@app.route("/get_answer/", methods=['GET'])
+def get_answer():
+	'''获取问卷的所有答案或者部分问卷的答案
+	需要： 
+	all:表示是否是所有的答案, 是为1，否为0
+	task_id
+	openid: 可有可无，当all为1的时候不需要有
+	'''
+	args = request.args
+	all = int(args.get('all'))
+	if all == 0:
+		error, answers = db_helper.get_answers(int(args.get('openid')), int(args.get('task_id')))
+		error = 1 if error == True else 0
+		if error == 1:
+			return str({'error': 1, "data": {'msg': answers}})
+		else:
+			return str({'error': 0, "data": {'msg': '获取成功', 'answers': answers}})
+	else:
+		answers = db_helper.get_all_answers(int(args.get('task_id')))
+		return str({'error': 0, "data": {'msg': '获取成功', 'answers': answers}})
 
 @app.route("/initial/", methods=['GET'])
 def initial_():
