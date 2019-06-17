@@ -1,7 +1,9 @@
+from config import make_pattern
+
 from .test import test_json, test_normal_crud, test_time, test_create_student_and_organization, test_accetp_and_publish, test_some_methods
 from .Accept import Accept
 from .Organization import Organization
-from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db, DEFAULT_TIME, STUDENT_NAME, SEX, GRADE, COLLAGES, EDUBG, ORGANIZATION_NAME, ALL_SIGNATURE
+from .prepare import ALL_TAGS, QUESTIONNAIRE_INDEX, app, db, DEFAULT_TIME, STUDENT_NAME, SEX, GRADE, COLLAGES, EDUBG, ORGANIZATION_NAME, ALL_SIGNATURE, model_repr
 from .Student import Student
 from .Task import Task
 from .Problem import Problem
@@ -423,12 +425,16 @@ class DBHelper:
                 last_accept_time = accept.accept_time
         return tasks, last_accept_time
 
-    def get_recipient(self, id_or_task, start: int=0, length: int=update_add_num):
+    def get_recipient(self, id_or_task, last_accept_id: int=-1, start: int=0, length: int=update_add_num):
         '''根据task_id或者task查找接受任务者  
         Args:
             id_or_task: int/Task 任务的id或者该任务
+            last_accept_id: int 表示返回的last_accept_id，以此作为后续数据请求的"标识"
             start: int 获取接受者的开始位置
             length: int 获取接受者的长度
+        Return:
+            recipients: 任务接受者列表
+            last_accept_id: 作为下次输入的last_accept_id
         Tips:
             可以直接通过 **task.accepts** 获取接受，然后通过 **accept.student** 来获取接受者，但不按照时间排序
         '''
@@ -438,11 +444,17 @@ class DBHelper:
             if id_or_task is None:
                 return None
         task = id_or_task
-        accepts = task.accepts[start : length]
+        # accepts = task.accepts[start : length]
+        query = Accept.query.filter(Accept.task_id == task.id)
+        if last_accept_id != -1:
+            query = query.filter(Accept.id < last_accept_id)
+        accepts = query.order_by(Accept.id.desc()).offset(start).limit(length).all()
+        if accepts is not None and len(accepts) == length:
+            last_accept_id = accepts[-1].id
         recipients = [accept.student for accept in accepts]
         for recipient in recipients:
             recipient.password = ''
-        return recipients
+        return recipients, last_accept_id
 
     def get_publisher(self, id_or_task):
         '''根据task_id或者task找到任务发布者  
@@ -625,8 +637,8 @@ class DBHelper:
         '''
         if last_id != -1:
             query = query.filter(Task.id < last_id)
-        if screen_accept:
-            query = query.join(Accept).filter(Accept.task_id == Task.id, Accept.accept_id != accept_id)
+        # if screen_accept:
+        #     query = query.join(Accept).filter(Accept.task_id == Task.id and Accept.accept_id != accept_id or Accept.task_id != Task.id)
         if screen_time:
             now = datetime.now()
             query = query.filter(Task.limit_time > now)
@@ -655,6 +667,9 @@ class DBHelper:
             if task is None:
                 self.session.rollback()
                 return False, '不存在该任务'
+            if task.publish_id == accept_id:
+                self.session.rollback()
+                return False, '不能接受自己发布的任务'
             stu = Student.query.filter(Student.openid == accept_id).one_or_none()
             if stu is None:
                 self.session.rollback()
@@ -888,7 +903,15 @@ if __name__ == "__main__":
 # 测试使用
 if app.config['ADD_RANDOM_SAMPLE']:
     test_normal_crud(db_helper)
+# test_time(db_helper, update_add_num)
 # test_normal_crud(db_helper)
 # test_create_student_and_organization(db_helper)
 # test_accetp_and_publish(db_helper, update_add_num)
 # test_some_methods(db_helper, app, update_add_num)
+
+# a, b = db_helper.get_recipient(39, length=3)
+# print(a)
+# print('-' * 100)
+# print(b)
+# print('-' * 100)
+# print(db_helper.get_recipient(39, b, length=3))

@@ -174,7 +174,7 @@ def test_time(db_helper, update_add_num):
 
 
 def test_accetp_and_publish(db_helper, update_add_num):
-    openid = 1
+    openid = 6
     update_add_num = 5
     test_publish_task(db_helper.get_all_publish_tasks, openid, update_add_num,
                      '加载组织{}发布的所有的最新{}条任务'.format(openid, update_add_num),
@@ -186,7 +186,7 @@ def test_accetp_and_publish(db_helper, update_add_num):
               '加载组织{}发布的已完成的最新{}条任务'.format(openid, update_add_num),
               '加载组织{}发布的已完成的后{}条任务'.format(openid, update_add_num))
 
-    openid = 1000028
+    openid = 1000041
     update_add_num = 5
     test_accept_task(db_helper.get_all_accept_tasks, openid, update_add_num,
                      '加载学生{}接受的所有的最新{}条任务'.format(openid, update_add_num),
