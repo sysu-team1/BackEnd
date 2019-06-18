@@ -206,22 +206,31 @@ def add_cash(openid):
 	return str({'error': error, "data": {'msg': msg}})
 
 
-@app.route("/my/<openid>", methods=['GET'])
-def get_self_information(openid):
-	# 获取用户个人信息
-	# TODO 还没有写完
-	id = int(openid)
-	if id < 1000000:
-		org = db_helper.query_oraganization(id)
-		orders = ['email', 'name', 'cash']
-		patterns = make_pattern(len(orders))
-		info = model_repr(org, patterns, orders)
-	else:
-		stu = db_helper.query_student(id)
-		orders = ['email', 'student_id', 'name', 'sex', 'collage', 'grade', 'edu_bg', 'cash']
-		patterns = make_pattern(len(orders))
-		info = model_repr(stu, patterns, orders)
-	return info
+@app.route("/my/", methods=['GET'])
+def get_self_information():
+	''' 获取用户个人信息
+
+	需要的字段：
+		openid:
+		cash: 1表示只获取cash信息，0表示获取全部
+	'''
+	try:
+		args = request.args
+		id = int(args.get('openid'))
+		cash = int(args.get('cash'))
+		if id < 1000000:
+			org = db_helper.query_oraganization(id)
+			orders = ['email', 'name', 'cash'] if cash == 0 else ['cash']
+			patterns = make_pattern(len(orders))
+			info = model_repr(org, patterns, orders)
+		else:
+			stu = db_helper.query_student(id)
+			orders = ['email', 'student_id', 'name', 'sex', 'collage', 'grade', 'edu_bg', 'cash'] if cash == 0 else ['cash']
+			patterns = make_pattern(len(orders))
+			info = model_repr(stu, patterns, orders)
+		return str({'error': 0, 'data': info})
+	except Exception:
+		return str({'error': 1, 'data': {'msg': '不存在该账号'}})
 
 
 @app.route("/get_problem/<task_id>", methods=['GET'])
