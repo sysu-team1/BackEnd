@@ -228,7 +228,7 @@ def get_self_information():
 			orders = ['email', 'student_id', 'name', 'sex', 'collage', 'grade', 'edu_bg', 'cash'] if cash == 0 else ['cash']
 			patterns = make_pattern(len(orders))
 			info = model_repr(stu, patterns, orders)
-		return str({'error': 0, 'data': info})
+		return str({'error': 0, 'data': None})[:-5] + info + '}'
 	except Exception:
 		return str({'error': 1, 'data': {'msg': '不存在该账号'}})
 
@@ -285,7 +285,7 @@ def get_answer():
 	all = int(args.get('all'))
 	if all == 0:
 		error, answers = db_helper.get_answers(int(args.get('openid')), int(args.get('task_id')))
-		error = 1 if error == True else 0
+		error = 0 if error == True else 1
 		if error == 1:
 			return str({'error': 1, "data": {'msg': answers}})
 		else:
