@@ -52,6 +52,15 @@ def accept_task_(form):
 		res = {'error': 1, 'data': {'msg': msg}}
 	return str(res)
 
+def get_recipients_(args):
+	if('task_id' not in args or 'last_accept_id' not in args):
+		return "{\"error\": 1, \"data\": {\"msg\": \"参数错误\"}}"
+	recipients, last_accept_id = db_helper.get_recipient(int(args.get('task_id')), int(args.get('last_accept_id')))
+	recipients_str = '[' + ','.join([str(recipient) for recipient in recipients]) + ']'
+	res = "{\"error\": 0, \"data\": {\"msg\": \"" + str(last_accept_id) + "\", \"recipients\": " + recipients_str + "}}"
+	return str(res)
+
 def create_task_(form):
 	pass
 	# db_helper.create_task(self, publish_id, limit_time, limit_num, title, content, tag, reward, problem_content='')
+

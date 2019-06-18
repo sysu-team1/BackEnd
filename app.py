@@ -9,7 +9,7 @@ from tools import utils
 from flask import Flask, request, json, url_for, Response
 # from responses.manage_users import register_, get_verification_code_, enter_event_and_run_scheduler
 # from responses.get_tasks import get_tasks_by_
-from responses import register_, get_verification_code_, enter_event_and_run_scheduler, get_tasks_by_, create_task_, accept_task_, update_
+from responses import register_, get_verification_code_, enter_event_and_run_scheduler, get_tasks_by_, create_task_, accept_task_, update_, get_recipients_
 from flask_uploads import UploadSet, configure_uploads, IMAGES, patch_request_class
 from tools.utils import generate_verification_code
 import os
@@ -115,6 +115,9 @@ def create_task():
 def accept_task():
 	return accept_task_(request.form)
 
+@app.route('/tasks/get_recipients/', methods=['GET'])
+def get_recipients():
+	return get_recipients_(request.args)
 
 @app.route('/tasks/upload_photo/<task_id>', methods=['POST', 'GET'])
 def upload_photo(task_id):
