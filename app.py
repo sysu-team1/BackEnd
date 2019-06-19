@@ -82,7 +82,13 @@ def create_task():
 		"msg": "余额不足/创建成功/'没有图片上传'/'创建成功'/'图片上传失败'",
 	}
 	'''
+	# TODO 注释掉
 	print(request.files)
+	problem_content = ''
+	if request.form['tag'] == '问卷':
+		problem_content = request.form['problem_content']
+		if ' ' in problem_content or '$#' in problem_content or '##' in problem_content or '^$' in problem_content or '#^' in problem_content or problem_content[-1:] == '#':
+			return str({'error': 1, "data": {'msg': '请将问卷填写完整'}})
 	problem_content = '' if request.form['tag'] != '问卷' else request.form['problem_content']
 	error, new_task = db_helper.create_task(int(request.form['openid']), request.form['limit_time'], request.form['limit_num'], request.form['title'], request.form['content'], request.form['tag'], request.form['reward'], problem_content)
 	if error == 1:
