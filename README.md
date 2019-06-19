@@ -105,7 +105,9 @@ python app.py
 
 #### 2.6 预装载数据
 
-TODO需要写一个路由
+```python
+在浏览器输入 ip + 端口 + '/initial/'即可
+```
 
 
 
