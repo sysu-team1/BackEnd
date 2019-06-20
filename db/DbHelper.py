@@ -497,7 +497,7 @@ class DBHelper:
         openid = int(openid)
         answer_list = answer_content.split('#')
         task = Task.query.filter(Task.id == task_id).one_or_none()
-        accept = Accept.query.filter(Accept.accept_id == int(openid)).one_or_none()
+        accept = Accept.query.filter(Accept.task_id == task_id, Accept.accept_id == int(openid)).one_or_none()
         print(accept)
         i = 0
         answers = []
@@ -507,7 +507,7 @@ class DBHelper:
         print(answers)
         self.save_all(answers)
         # 添加完成时间
-        accept_task = Accept.query.filter(Accept.task_id == task_id, Accept.accept_id == openid)
+        accept_task = Accept.query.filter(Accept.task_id == task_id, Accept.accept_id == openid).one_or_none()
         accept_task.finish_time = datetime.now()
         # 添加转钱事件
         target = Student.query.filter(Student.openid == openid).one_or_none(
