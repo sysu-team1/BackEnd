@@ -532,8 +532,19 @@ class DBHelper:
             task = id_or_task
         if task is None or task.tag.find(ALL_TAGS[QUESTIONNAIRE_INDEX]) == -1:
             return all_answers
+        # for problem in task.problems:
+        #     all_answers.append(problem.answers)
         for problem in task.problems:
-            all_answers.append(problem.answers)
+            answer_list = [0, 0, 0, 0]
+            for answer in problem.answers:
+                answer_list[answer.answer - 1] += 1
+            problem_dict = dict()
+            problem_dict['题目'] = str(problem.description)
+            choices = problem.all_answers.split('#')
+            for i in range(4):
+                problem_dict[str(i+1)] = str(choices[i])
+            problem_dict['统计'] = answer_list
+            all_answers.append(problem_dict)
         return all_answers
 
     def get_answers(self, openid: int, task_id: int):
@@ -544,12 +555,17 @@ class DBHelper:
             return False, '该任务不是问卷类型，无表单'
         task = Task.query.filter(Task.id == task_id).one_or_none()
         all_answers = []
+        # problem_str = []
         for problem in task.problems:
+            problem_dict = dict()
             for answer in problem.answers:
                 if answer.accept_id == accept_task.id:
-                    all_answers.append(problem.description)
-                    all_answers.append(problem.all_answers)
-                    all_answers.append(answer.answer)
+                    problem_dict['题目'] = str(problem.description)
+                    choices = problem.all_answers.split('#')
+                    for i in range(4):
+                        problem_dict[str(i+1)] = str(choices[i])
+                    problem_dict['选项'] = answer.answer
+            all_answers.append(problem_dict)
         return True, all_answers
 
     def get_task_by_id(self, task_id, get_publisher: bool=True):
