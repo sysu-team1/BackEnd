@@ -534,16 +534,18 @@ class DBHelper:
             return all_answers
         # for problem in task.problems:
         #     all_answers.append(problem.answers)
+        choice_id = ['A', 'B', 'C', 'D']
+        choice_id_str = ['A选项', 'B选项', 'C选项', 'D选项']
         for problem in task.problems:
             answer_list = [0, 0, 0, 0]
             for answer in problem.answers:
                 answer_list[answer.answer - 1] += 1
             problem_dict = dict()
-            problem_dict['题目'] = str(problem.description)
+            problem_dict['question'] = str(problem.description)
             choices = problem.all_answers.split('#')
             for i in range(4):
-                problem_dict[str(i+1)] = str(choices[i])
-            problem_dict['统计'] = answer_list
+                problem_dict[choice_id[i]] = str(choices[i])
+            problem_dict['choice'] = str(dict(zip(choice_id_str, answer_list)))[1:-1].replace("'", '')
             all_answers.append(problem_dict)
         return all_answers
 
@@ -556,15 +558,16 @@ class DBHelper:
         task = Task.query.filter(Task.id == task_id).one_or_none()
         all_answers = []
         # problem_str = []
+        choice_id = ['A', 'B', 'C', 'D']
         for problem in task.problems:
             problem_dict = dict()
             for answer in problem.answers:
                 if answer.accept_id == accept_task.id:
-                    problem_dict['题目'] = str(problem.description)
+                    problem_dict['question'] = str(problem.description)
                     choices = problem.all_answers.split('#')
                     for i in range(4):
-                        problem_dict[str(i+1)] = str(choices[i])
-                    problem_dict['选项'] = answer.answer
+                        problem_dict[choice_id[i]] = str(choices[i])
+                    problem_dict['choice'] = str(choice_id[answer.answer])
             all_answers.append(problem_dict)
         return True, all_answers
 

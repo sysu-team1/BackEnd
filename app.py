@@ -87,7 +87,9 @@ def create_task():
 	problem_content = ''
 	if request.form['tag'] == '问卷':
 		problem_content = request.form['problem_content']
-		if ' ' in problem_content or '$#' in problem_content or '##' in problem_content or '^$' in problem_content or '#^' in problem_content or problem_content[-1:] == '#':
+		if '' == problem_content or ' ' == problem_content:
+			return str({'error': 1, "data": {'msg': '请创建问卷或重新选择类型'}})
+		if '$#' in problem_content or '##' in problem_content or '^$' in problem_content or '#^' in problem_content or problem_content[-1:] == '#':
 			return str({'error': 1, "data": {'msg': '请将问卷填写完整'}})
 	problem_content = '' if request.form['tag'] != '问卷' else request.form['problem_content']
 	error, new_task = db_helper.create_task(int(request.form['openid']), request.form['limit_time'], request.form['limit_num'], request.form['title'], request.form['content'], request.form['tag'], request.form['reward'], problem_content)
