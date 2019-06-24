@@ -42,20 +42,20 @@
 ### 文件目录
 
 ```
-│  app.py					主程序入口
+│  app.py				主程序入口
 │  config.py				flask与MySQL配置
 │  constants.py				常量文件
 │  README.md				文档
 │  requirements.txt			记录所有依赖包及其精确的版本号，以便新环境部署。
 │  secret_key.py			邮件服务器的密钥
 │  
-├─assets					文档图片文件夹
+├─assets				文档图片文件夹
 │      
-├─db						数据库操作文件夹
+├─db					数据库操作文件夹
 │  │  Accept.py				Accept表
 │  │  Answer.py				Answer表
 │  │  DbHelper.py			集成的数据库操作文件
-│  │  Organization.py		Organization表
+│  │  Organization.py			Organization表
 │  │  prepare.py			预处理函数文件
 │  │  Problem.py			Problem表
 │  │  Student.py			Student表
@@ -65,10 +65,10 @@
 │  │  
 │  └─__pycache__			pyc中间文件夹
 │          
-├─images					用户上传的文件夹
+├─images				用户上传的文件夹
 │      
-├─responses					响应函数
-│  │  my.py					个人信息文件
+├─responses				响应函数
+│  │  my.py				个人信息文件
 │  │  task.py				任务相关操作文件
 │  │  user.py				用户操作文件
 │  │  __init__.py
@@ -80,7 +80,7 @@
 │  │  utils.py				工具类
 │  │  
 │  ├─templates
-│  │      email.html		邮件模板
+│  │      email.html		        邮件模板
 │  │      
 │  └─__pycache__			pyc中间文件夹
 │        
